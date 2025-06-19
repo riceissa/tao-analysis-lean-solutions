@@ -69,7 +69,9 @@ lemma Nat.add_succ (n m:Nat) : n + (m++) = (n + m)++ := by
 
 /-- n++ = n + 1 (Why?) -/
 theorem Nat.succ_eq_add_one (n:Nat) : n++ = n + 1 := by
-  sorry
+  -- This proof was written by Issa.
+  rw [← zero_succ]
+  rw [add_succ, add_zero]
 
 /-- Proposition 2.2.4 (Addition is commutative) -/
 theorem Nat.add_comm (n m:Nat) : n + m = m + n := by
@@ -82,7 +84,12 @@ theorem Nat.add_comm (n m:Nat) : n + m = m + n := by
 
 /-- Proposition 2.2.5 (Addition is associative) / Exercise 2.2.1-/
 theorem Nat.add_assoc (a b c:Nat) : (a + b) + c = a + (b + c) := by
-  sorry
+  -- This proof was written by Issa.
+  revert a; apply induction
+  . rw [zero_add, zero_add]
+  intro n ih
+  repeat rw [succ_add]
+  rw [ih]
 
 /-- Proposition 2.2.6 (Cancellation law) -/
 theorem Nat.add_cancel_left (a b c:Nat) (habc: a + b = a + c) : b = c := by
@@ -149,7 +156,49 @@ extracts a witness `x` and a proof `hx : P x` of the property from a hypothesis 
 
 /-- Lemma 2.2.10 (unique predecessor) / Exercise 2.2.2 -/
 lemma Nat.uniq_succ_eq (a:Nat) (ha: a.isPos) : ∃! b, b++ = a := by
-  sorry
+  -- This proof was written by Issa. New, cleaner version.
+  rw [isPos_iff] at ha
+  revert a; apply induction
+  . tauto
+  . intro n
+    intro h1
+    intro h2
+    apply existsUnique_of_exists_of_unique
+    use n
+    intro y1 y2
+    intro hy1 hy2
+    apply succ_cancel at hy1
+    apply succ_cancel at hy2
+    rw [← hy2] at hy1
+    exact hy1
+
+
+
+
+/-
+  -- This proof was written by Issa. Old version that is messy.
+  -- First, let's rewrite the definition of a positive natural number:
+  rw [isPos_iff] at ha
+  -- To prove unique existence, we break the proof into two parts: first we prove existence, then we prove uniqueness.
+  apply existsUnique_of_exists_of_unique
+  -- To prove existence, we use induction on a.
+  revert a; apply induction
+  -- For the base case, the statement is vacuously true since 0 is not positive.
+  intro h
+  contradiction
+  -- Now for the inductive step. We don't actually need the inductive hypothesis, so we just use the _ to say we don't care what they are.
+  intro a _
+  intro _
+  -- Since this is the inductive case, the number we are trying to show has a successor is already of the form a++, which means it automatically is a successor! So we just use the a we are given to complete the proof of existence:
+  use a
+  -- Now, for uniqueness. We start by unwrapping the quantifiers and hypotheses:
+  intro y1 y2
+  intro h1 h2
+  -- At this point it's pretty obvious what to do. We substitute one of the a's in for the other, and use the injectivity of the successor to complete the proof.
+  rw [← h2] at h1
+  apply succ_cancel at h1
+  exact h1
+-/
 
 /-- Definition 2.2.11 (Ordering of the natural numbers) -/
 instance Nat.instLE : LE Nat where
@@ -186,25 +235,87 @@ example : (8:Nat) > 5 := by
   decide
 
 theorem Nat.succ_gt (n:Nat) : n++ > n := by
-  sorry
+  -- This proof was written by Issa.
+  rw [Nat.gt_iff_lt, Nat.lt_iff]
+  constructor
+  . use 1
+    rw [Nat.succ_eq_add_one]
+  revert n; apply induction
+  . intro h
+    symm at h
+    have : 0++ ≠ 0 := Nat.succ_ne 0
+    contradiction
+  intro n hn
+  apply Nat.succ_ne_succ at hn
+  exact hn
+
 
 /-- Proposition 2.2.12 (Basic properties of order for natural numbers) / Exercise 2.2.3
 
 (a) (Order is reflexive). -/
 theorem Nat.ge_refl (a:Nat) : a ≥ a := by
-  sorry
+  -- This proof was written by Issa.
+  rw [Nat.ge_iff_le, Nat.le_iff]
+  use 0
+  rw [Nat.add_zero]
 
 /-- (b) (Order is transitive).  The `obtain` tactic will be useful here. -/
 theorem Nat.ge_trans {a b c:Nat} (hab: a ≥ b) (hbc: b ≥ c) : a ≥ c := by
-  sorry
+  -- This proof was written by Issa.
+  rw [Nat.ge_iff_le]
+  rw [Nat.ge_iff_le] at hab
+  rw [Nat.ge_iff_le] at hbc
+  rw [Nat.le_iff] at hab
+  rw [Nat.le_iff] at hbc
+  obtain ⟨ x, hx ⟩ := hab
+  obtain ⟨ y, hy ⟩ := hbc
+  rw [Nat.le_iff]
+  use (y+x)
+  rw [hx, hy]
+  rw [Nat.add_assoc]
 
 /-- (c) (Order is anti-symmetric)  -/
 theorem Nat.ge_antisymm {a b:Nat} (hab: a ≥ b) (hba: b ≥ a) : a = b := by
-  sorry
+  -- This proof was written by Issa.
+  rw [Nat.ge_iff_le, Nat.le_iff] at hab
+  rw [Nat.ge_iff_le, Nat.le_iff] at hba
+  obtain ⟨ x, hx ⟩ := hab
+  obtain ⟨ y, hy ⟩ := hba
+  rw [hy] at hx
+  rw [Nat.add_assoc] at hx
+  nth_rewrite 1 [← Nat.add_zero a] at hx
+  apply Nat.add_cancel_left at hx
+  symm at hx
+  apply Nat.add_eq_zero at hx
+  have hyz : y = 0 := hx.left
+  rw [hyz] at hy
+  rw [Nat.add_zero] at hy
+  symm at hy
+  exact hy
+
 
 /-- (d) (Addition preserves order)  -/
 theorem Nat.add_ge_add_right (a b c:Nat) : a ≥ b ↔ a + c ≥ b + c := by
-  sorry
+  -- This proof was written by Issa.
+  rw [Nat.ge_iff_le, Nat.ge_iff_le]
+  constructor
+  intro h
+  rw [Nat.le_iff] at h
+  obtain ⟨ x, hx ⟩ := h
+  rw [Nat.le_iff]
+  use x
+  rw [hx]
+  rw [Nat.add_assoc, Nat.add_assoc]
+  rw [Nat.add_comm x c]
+  intro h
+  rw [Nat.le_iff] at h
+  obtain ⟨ d, hd ⟩ := h
+  use d
+  rw [Nat.add_comm] at hd
+  rw [Nat.add_comm b c] at hd
+  rw [Nat.add_assoc] at hd
+  apply Nat.add_cancel_left at hd
+  exact hd
 
 /-- (d) (Addition preserves order)  -/
 theorem Nat.add_ge_add_left (a b c:Nat) : a ≥ b ↔ c + a ≥ c + b := by
@@ -219,11 +330,78 @@ theorem Nat.add_le_add_left (a b c:Nat) : a ≤ b ↔ c + a ≤ c + b := add_ge_
 
 /-- (e) a < b iff a++ ≤ b. -/
 theorem Nat.lt_iff_succ_le (a b:Nat) : a < b ↔ a++ ≤ b := by
-  sorry
+  -- This proof was written by Issa.
+  rw [Nat.lt_iff]
+  constructor
+  intro h
+  let ⟨h1, h2⟩ := h
+  rw [Nat.le_iff]
+  obtain ⟨d, hd⟩ := h1
+  rw [hd] at h2
+  have hdpos: d ≠ 0 := by
+    intro h'
+    rw [h'] at h2
+    rw [Nat.add_zero] at h2
+    contradiction
+  rw [← isPos_iff] at hdpos
+  apply Nat.uniq_succ_eq at hdpos
+  apply ExistsUnique.exists at hdpos
+  rw [hd]
+  obtain ⟨dp, hdp⟩ := hdpos
+  rw [← hdp]
+  use dp
+  rw [Nat.add_succ]
+  rw [Nat.succ_add]
+  -- Now, for the other direction...
+  intro h
+  constructor
+  rw [Nat.le_iff] at h
+  obtain ⟨ d, hd ⟩ := h
+  use (d++)
+  rw [Nat.add_succ]
+  rw [Nat.succ_add] at hd
+  exact hd
+  by_contra hc
+  rw [Nat.le_iff] at h
+  obtain ⟨ d, hd ⟩ := h
+  rw [hc] at hd
+  rw [Nat.succ_add] at hd
+  rw [← Nat.add_succ] at hd
+  nth_rewrite 1 [← Nat.add_zero b] at hd
+  apply Nat.add_cancel_left at hd
+  symm at hd
+  apply Nat.succ_ne at hd
+  exact hd
+
 
 /-- (f) a < b if and only if b = a + d for positive d. -/
 theorem Nat.lt_iff_add_pos (a b:Nat) : a < b ↔ ∃ d:Nat, d.isPos ∧ b = a + d := by
-  sorry
+  -- This proof was written by Issa.
+  rw [Nat.lt_iff_succ_le]
+  constructor
+  intro h
+  obtain ⟨c, hc⟩ := h
+  rw [Nat.succ_add] at hc
+  rw [← Nat.add_succ] at hc
+  use (c++)
+  constructor
+  rw [Nat.isPos_iff]
+  apply Nat.succ_ne
+  exact hc
+  -- Now we do the other direction...
+  intro h
+  obtain ⟨ d, hd ⟩ := h
+  let ⟨ h1, h2 ⟩ := hd
+  rw [Nat.le_iff]
+  apply Nat.uniq_succ_eq at h1
+  apply ExistsUnique.exists at h1
+  obtain ⟨ c, hc ⟩ := h1
+  use c
+  rw [← hc] at h2
+  rw [Nat.add_succ] at h2
+  rw [← Nat.succ_add] at h2
+  exact h2
+
 
 /-- If a < b then a ̸= b,-/
 theorem Nat.ne_of_lt (a b:Nat) : a < b → a ≠ b := by
@@ -246,7 +424,10 @@ theorem Nat.trichotomous (a b:Nat) : a < b ∨ a = b ∨ a > b := by
   -- this proof is written to follow the structure of the original text.
   revert a; apply induction
   . have why : 0 ≤ b := by
-      sorry
+      -- This sub-step was written by Issa.
+      rw [Nat.le_iff]
+      use b
+      rw [Nat.zero_add]
     replace why := (Nat.le_iff_lt_or_eq _ _).mp why
     tauto
   intro a ih
@@ -254,9 +435,33 @@ theorem Nat.trichotomous (a b:Nat) : a < b ∨ a = b ∨ a > b := by
   . rw [lt_iff_succ_le] at case1
     rw [Nat.le_iff_lt_or_eq] at case1
     tauto
-  . have why : a++ > b := by sorry
+  . have why : a++ > b := by
+      -- This sub-step was written by Issa.
+      rw [case2]
+      rw [Nat.gt_iff_lt]
+      rw [Nat.lt_iff_add_pos]
+      use 1
+      constructor
+      rw [isPos_iff]
+      rw [← Nat.zero_succ]
+      exact Nat.succ_ne _
+      rw [← Nat.zero_succ]
+      rw [Nat.add_succ, Nat.add_zero]
     tauto
-  have why : a++ > b := by sorry
+  have why : a++ > b := by
+    -- This sub-step was written by Issa.
+    rw [Nat.gt_iff_lt]
+    rw [Nat.gt_iff_lt] at case3
+    rw [Nat.lt_iff_add_pos]
+    rw [Nat.lt_iff_add_pos] at case3
+    obtain ⟨ d, hd ⟩ := case3
+    let ⟨ hd1, hd2 ⟩ := hd
+    use (d++)
+    constructor
+    rw [Nat.isPos_iff]
+    apply Nat.succ_ne
+    rw [hd2]
+    rw [Nat.add_succ]
   tauto
 
 /--
@@ -269,20 +474,47 @@ theorem Nat.trichotomous (a b:Nat) : a < b ∨ a = b ∨ a > b := by
 def Nat.le_dec : (a b : Nat) → Decidable (a ≤ b)
   | 0, b => by
     apply isTrue
-    sorry
+    -- This part was done by Issa.
+    use b
+    rw [Nat.zero_add]
   | a++, b => by
     cases le_dec a b with
     | isTrue h =>
       cases decEq a b with
       | isTrue h =>
         apply isFalse
-        sorry
+        -- This part was done by Issa.
+        by_contra h'
+        rw [← h] at h'
+        have ha : a++ > a := Nat.succ_gt a
+        rw [Nat.le_iff_lt_or_eq] at h'
+        rcases h' with h1 | h2
+        apply Nat.not_lt_of_gt (a++) a
+        constructor
+        exact h1
+        exact ha
+        rw [← Nat.add_zero (a++)] at h2
+        rw [Nat.succ_add] at h2
+        rw [← Nat.add_succ] at h2
+        nth_rewrite 2 [← Nat.add_zero a] at h2
+        apply Nat.add_cancel_left at h2
+        apply Nat.succ_ne at h2
+        exact h2
       | isFalse h =>
         apply isTrue
-        sorry
+        -- This part was done by Issa.
+        rw [← Nat.lt_iff_succ_le]
+        rw [Nat.lt_iff]
+        rw [← Nat.le_iff]
+        tauto
     | isFalse h =>
       apply isFalse
-      sorry
+      -- This part was written by Issa.
+      contrapose! h
+      rw [← Nat.lt_iff_succ_le] at h
+      rw [Nat.lt_iff] at h
+      rw [← Nat.le_iff] at h
+      tauto
 
 instance Nat.decidableRel : DecidableRel (· ≤ · : Nat → Nat → Prop) := Nat.le_dec
 
@@ -291,9 +523,34 @@ instance Nat.decidableRel : DecidableRel (· ≤ · : Nat → Nat → Prop) := N
 instance Nat.linearOrder : LinearOrder Nat where
   le_refl := ge_refl
   le_trans a b c hab hbc := ge_trans hbc hab
-  lt_iff_le_not_le := sorry
+  lt_iff_le_not_le := by
+    -- This proof was written by Issa.
+    intro a b
+    rw [Nat.lt_iff]
+    rw [← Nat.le_iff]
+    constructor
+    intro h
+    constructor
+    exact h.left
+    contrapose! h
+    intro h'
+    exact Nat.ge_antisymm h h'
+    intro h
+    constructor
+    exact h.left
+    have : b > a := by
+      rw [Nat.le_iff_lt_or_eq] at h
+      rw [Nat.le_iff_lt_or_eq] at h
+      tauto
   le_antisymm a b hab hba := ge_antisymm hba hab
-  le_total := sorry
+  le_total := by
+    -- This part was written by Issa.
+    intro a b
+    rw [Nat.le_iff_lt_or_eq]
+    rw [Nat.le_iff_lt_or_eq]
+    have h := Nat.trichotomous
+    specialize h a b
+    tauto
   toDecidableLE := decidableRel
 
 /-- (Not from textbook) Nat has the structure of an ordered monoid. -/
@@ -307,7 +564,43 @@ instance Nat.isOrderedAddMonoid : IsOrderedAddMonoid Nat where
 theorem Nat.strong_induction {m₀:Nat} {P: Nat → Prop}
   (hind: ∀ m, m ≥ m₀ → (∀ m', m₀ ≤ m' ∧ m' < m → P m') → P m) :
     ∀ m, m ≥ m₀ → P m := by
-  sorry
+  -- This proof was written by Issa.
+  let Q (n : Nat) : Prop := ∀ m', m₀ ≤ m' ∧ m' < n → P m'
+  have hind_using_Q : ∀ m, m ≥ m₀ → Q m → P m := hind
+  have Qn : ∀ n, Q n := by
+    apply induction
+    . unfold Q
+      intro m
+      intro h
+      rw [Nat.lt_iff] at h
+      obtain ⟨ a, ha ⟩ := h.right.left
+      symm at ha
+      apply Nat.add_eq_zero at ha
+      tauto
+    . intro n
+      intro h
+      unfold Q
+      intro m
+      intro h1
+      have : (m₀ ≤ m ∧ m < n) ∨ m = n := by
+        rw [Nat.lt_iff_succ_le] at h1
+        rw [Nat.succ_eq_add_one, Nat.succ_eq_add_one] at h1
+        nth_rewrite 2 [← Nat.ge_iff_le] at h1
+        rw [← Nat.add_ge_add_right] at h1
+        rw [Nat.ge_iff_le] at h1
+        have h2 := h1.right
+        rw [Nat.le_iff_lt_or_eq] at h2
+        obtain h3 | h4 := h2
+        . left
+          constructor
+          exact h1.left
+          exact h3
+        . right
+          exact h4
+      obtain h2 | h3 := this
+      . sorry
+      . sorry
+
 
 /-- Exercise 2.2.6 (backwards induction) -/
 theorem Nat.backwards_induction {n:Nat} {P: Nat → Prop}
