@@ -691,6 +691,7 @@ theorem Nat.strong_induction {m₀:Nat} {P: Nat → Prop}
   apply Qn at h1
   exact h1
 
+-- This lemma was added by Issa.
 lemma Nat.eq_zero_of_le_zero (n : Nat) (h: n ≤ 0) : n = 0 := by
   rw [Nat.le_iff] at h
   obtain ⟨ a, ha ⟩ := h
@@ -702,6 +703,7 @@ lemma Nat.eq_zero_of_le_zero (n : Nat) (h: n ≤ 0) : n = 0 := by
 theorem Nat.backwards_induction {n:Nat} {P: Nat → Prop}
   (hind: ∀ m, P (m++) → P m) (hn: P n) :
     ∀ m, m ≤ n → P m := by
+  -- This proof was done by Issa.
   let Q (n : Nat) := P n → ∀ m, m ≤ n → P m
   have : ∀ n, Q n := by
     apply induction
@@ -744,8 +746,29 @@ theorem Nat.backwards_induction {n:Nat} {P: Nat → Prop}
 /-- Exercise 2.2.7 (induction from a starting point) -/
 theorem Nat.induction_from {n:Nat} {P: Nat → Prop} (hind: ∀ m, P m → P (m++)) :
     P n → ∀ m, m ≥ n → P m := by
-  sorry
-
-
+  intro h
+  let Q (m : Nat) := P (n + m)
+  have : ∀ m, Q m := by
+    apply induction
+    . unfold Q
+      rw [Nat.add_zero]
+      exact h
+    . intro m
+      intro hmind
+      unfold Q at hmind
+      specialize hind (n + m)
+      apply hind at hmind
+      rw [← Nat.add_succ] at hmind
+      unfold Q
+      exact hmind
+  intro m
+  intro hm
+  rw [Nat.ge_iff_le] at hm
+  rw [Nat.le_iff] at hm
+  obtain ⟨ a, ha ⟩ := hm
+  unfold Q at this
+  specialize this a
+  rw [← ha] at this
+  exact this
 
 end Chapter2
