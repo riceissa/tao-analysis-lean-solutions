@@ -691,11 +691,55 @@ theorem Nat.strong_induction {m₀:Nat} {P: Nat → Prop}
   apply Qn at h1
   exact h1
 
+lemma Nat.eq_zero_of_le_zero (n : Nat) (h: n ≤ 0) : n = 0 := by
+  rw [Nat.le_iff] at h
+  obtain ⟨ a, ha ⟩ := h
+  symm at ha
+  apply Nat.add_eq_zero at ha
+  exact ha.left
+
 /-- Exercise 2.2.6 (backwards induction) -/
 theorem Nat.backwards_induction {n:Nat} {P: Nat → Prop}
   (hind: ∀ m, P (m++) → P m) (hn: P n) :
     ∀ m, m ≤ n → P m := by
-  sorry
+  let Q (n : Nat) := P n → ∀ m, m ≤ n → P m
+  have : ∀ n, Q n := by
+    apply induction
+    . unfold Q
+      intro h
+      intro m
+      intro h1
+      apply Nat.eq_zero_of_le_zero at h1
+      rw [h1]
+      exact h
+    . intro n
+      intro h
+      unfold Q
+      intro hPnpp
+      specialize hind n
+      have hpp := hPnpp
+      apply hind at hPnpp
+      unfold Q at h
+      apply h at hPnpp
+      intro m
+      intro h1
+      have : m ≤ n ∨ m = n++ := by
+        have : m ≠ n++ → m ≤ n := by
+          intro h2
+          have h3 := And.intro h1 h2
+          rw [← Nat.lt_iff_le_and_ne] at h3
+          rw [Nat.lt_iff_succ_le] at h3
+          apply Nat.le_succ_cancel at h3
+          exact h3
+        tauto
+      rcases this with h2|h3
+      apply hPnpp
+      exact h2
+      rw [h3]
+      exact hpp
+  specialize this n
+  unfold Q at this
+  exact this hn
 
 /-- Exercise 2.2.7 (induction from a starting point) -/
 theorem Nat.induction_from {n:Nat} {P: Nat → Prop} (hind: ∀ m, P m → P (m++)) :
