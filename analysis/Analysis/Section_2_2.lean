@@ -82,6 +82,10 @@ theorem Nat.add_comm (n m:Nat) : n + m = m + n := by
   rw [succ_add]
   rw [add_succ, ih]
 
+lemma Nat.add_one (n : Nat) : n + 1 = succ n := by
+  rw [add_comm]
+  exact one_add n
+
 /-- Proposition 2.2.5 (Addition is associative) / Exercise 2.2.1-/
 theorem Nat.add_assoc (a b c:Nat) : (a + b) + c = a + (b + c) := by
   -- This proof was written by Issa.
@@ -116,6 +120,8 @@ instance Nat.addCommMonoid : AddCommMonoid Nat where
 def Nat.isPos (n:Nat) : Prop := n ≠ 0
 
 theorem Nat.isPos_iff (n:Nat) : n.isPos ↔ n ≠ 0 := by rfl
+
+
 
 /-- Proposition 2.2.8 (positive plus natural number is positive).-/
 theorem Nat.pos_add {a:Nat} (b:Nat) (ha: a.isPos) : (a + b).isPos := by
@@ -296,6 +302,7 @@ theorem Nat.ge_antisymm {a b:Nat} (hab: a ≥ b) (hba: b ≥ a) : a = b := by
   rw [Nat.add_zero] at hy
   symm at hy
   exact hy
+
 
 
 /-- (d) (Addition preserves order)  -/
@@ -769,6 +776,33 @@ theorem Nat.induction_from {n:Nat} {P: Nat → Prop} (hind: ∀ m, P m → P (m+
   obtain ⟨ a, ha ⟩ := hm
   specialize this a
   rw [← ha] at this
+  exact this
+
+lemma Nat.isPos_iff_gt_zero (n:Nat) : n.isPos ↔ n > 0 := by
+  constructor
+  . intro h
+    rw [Nat.isPos_iff] at h
+    rw [Nat.gt_iff_lt]
+    rw [Nat.lt_iff]
+    constructor
+    . use n
+      rfl
+    symm
+    exact h
+  . rw [Nat.isPos_iff]
+    exact Nat.ne_of_gt n 0
+
+lemma Nat.ge_zero (n:Nat) : n ≥ 0 := by
+  use n
+  rw [zero_add]
+
+lemma Nat.succ_gt_zero (n:Nat) : n++ > 0 := by
+  rw [gt_iff_lt]
+  rw [Nat.lt_iff_succ_le]
+  have := ge_zero n
+  rw [ge_iff_le] at this
+  rw [add_le_add_right 0 n 1] at this
+  rw [add_one, add_one] at this
   exact this
 
 end Chapter2

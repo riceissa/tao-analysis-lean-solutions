@@ -178,17 +178,75 @@ lemma Nat.mul_cancel_right {a b c: Nat} (h: a * c = b * c) (hc: c.isPos) : a = b
   replace hgt := ne_of_gt _ _ hgt
   contradiction
 
+lemma Nat.mul_le_mul_of_nonneg_left' {a b c : Nat} (hab : a ≤ b) : c * a ≤ c * b := by
+  rw [le_iff] at hab
+  obtain ⟨ d, hd ⟩ := hab
+  use (c*d)
+  rw [hd]
+  rw [Nat.mul_add]
+
 /-- (Not from textbook) Nat is an ordered semiring. -/
 instance Nat.isOrderedRing : IsOrderedRing Nat where
-  zero_le_one := by sorry
-  mul_le_mul_of_nonneg_left := by sorry
-  mul_le_mul_of_nonneg_right := by sorry
+  zero_le_one := by
+    use 1
+    rw [zero_add]
+  mul_le_mul_of_nonneg_left := by
+    intro a b c
+    intro h1 h2
+    exact Nat.mul_le_mul_of_nonneg_left' h1
+  mul_le_mul_of_nonneg_right := by
+    intro a b c
+    rw [mul_comm a c, mul_comm b c]
+    intro hab hc
+    exact Nat.mul_le_mul_of_nonneg_left' hab
 
 
 /-- Proposition 2.3.9 (Euclid's division lemma) / Exercise 2.3.5 -/
 theorem Nat.exists_div_mod (n :Nat) {q: Nat} (hq: q.isPos) :
     ∃ m r: Nat, 0 ≤ r ∧ r < q ∧ n = m * q + r := by
-  sorry
+  revert n; apply induction
+  . use 0
+    use 0
+    constructor
+    . tauto
+    . constructor
+      . rw [isPos_iff_gt_zero] at hq
+        rw [Nat.gt_iff_lt] at hq
+        exact hq
+      . rw [zero_mul, add_zero]
+  intro n h
+  obtain ⟨ m, hm ⟩ := h
+  obtain ⟨ r, hr ⟩ := hm
+  obtain ⟨ h1, h2 ⟩ := hr
+  obtain ⟨ h2, h3 ⟩ := h2
+  apply_fun (· + 1) at h3
+  rw [lt_iff_succ_le] at h2
+  rw [Nat.le_iff_lt_or_eq] at h2
+  rcases h2 with hlt | heq
+  . use m
+    use (r++)
+    constructor
+    rw [← Nat.ge_iff_le]
+    exact ge_zero (r++)
+    constructor
+    exact hlt
+    rw [add_one, add_one, ← add_succ] at h3
+    exact h3
+  . rw [add_assoc] at h3
+    rw [add_one r] at h3
+    rw [heq] at h3
+    use (m + 1)
+    use 0
+    constructor
+    tauto
+    constructor
+    rw [← heq]
+    rw [← gt_iff_lt]
+    exact succ_gt_zero r
+    rw [← add_one]
+    rw [add_mul]
+    rw [one_mul, add_zero]
+    exact h3
 
 /-- Definition 2.3.11 (Exponentiation for natural numbers) -/
 abbrev Nat.pow (m n: Nat) : Nat := Nat.recurse (fun _ prod ↦ prod * m) 1 n
