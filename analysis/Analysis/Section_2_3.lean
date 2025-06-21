@@ -48,25 +48,62 @@ theorem Nat.two_mul (m: Nat) : 2 * m = 0 + m + m := by
 
 /-- This lemma will be useful to prove Lemma 2.3.2. -/
 lemma Nat.mul_zero (n: Nat) : n * 0 = 0 := by
-  sorry
+  -- This formalization is based on the proof at https://taoanalysis.wordpress.com/2020/04/02/exercise-2-3-1/
+  revert n; apply induction
+  . rw [Nat.zero_mul]
+  . intro n hind
+    rw [Nat.succ_mul, hind, Nat.zero_add]
 
 /-- This lemma will be useful to prove Lemma 2.3.2. -/
 lemma Nat.mul_succ (n m:Nat) : n * m++ = n * m + n := by
-  sorry
+  -- This formalization is based on the proof at https://taoanalysis.wordpress.com/2020/04/02/exercise-2-3-1/
+  revert n; apply induction
+  . rw [Nat.zero_mul]
+    rw [Nat.zero_mul, Nat.zero_add]
+  . intro n hind
+    rw [Nat.succ_mul]
+    rw [hind]
+    rw [Nat.succ_mul]
+    rw [Nat.add_assoc, Nat.add_succ, Nat.add_comm n m]
+    rw [Nat.add_assoc, Nat.add_succ m n]
 
 /-- Lemma 2.3.2 (Multiplication is commutative) / Exercise 2.3.1 -/
 lemma Nat.mul_comm (n m: Nat) : n * m = m * n := by
-  sorry
+  -- This formalization is based on the proof at https://taoanalysis.wordpress.com/2020/04/02/exercise-2-3-1/
+  revert n; apply induction
+  . rw [Nat.zero_mul, Nat.mul_zero]
+  . intro n hind
+    rw [Nat.succ_mul, Nat.mul_succ]
+    rw [hind]
 
 theorem Nat.mul_one (m: Nat) : m * 1 = m := by
   rw [mul_comm, one_mul]
 
 /-- Lemma 2.3.3 (Positive natural numbers have no zero divisors) / Exercise 2.3.2 -/
 lemma Nat.mul_eq_zero_iff (n m: Nat) : n * m = 0 ↔ n = 0 ∨ m = 0 := by
-  sorry
+  -- This formalization is based on the model solution at https://taoanalysis.wordpress.com/2020/04/03/exercise-2-3-2/
+  constructor
+  . contrapose!
+    intro h
+    rw [← isPos_iff, ← isPos_iff] at h
+    obtain ⟨ hn, hm ⟩ := h
+    apply Nat.succ_eq at hn
+    apply Nat.succ_eq at hm
+    obtain ⟨ a, ha ⟩ := hn
+    obtain ⟨ b, hb ⟩ := hm
+    rw [← ha, ← hb]
+    rw [Nat.succ_mul, Nat.mul_succ]
+    rw [Nat.add_succ]
+    apply Nat.succ_ne
+  . intro h
+    obtain hn|hm := h
+    rw [hn, Nat.zero_mul]
+    rw [hm, Nat.mul_zero]
 
 lemma Nat.pos_mul_pos {n m: Nat} (h₁: n.isPos) (h₂: m.isPos) : (n * m).isPos := by
-  sorry
+  have h := Nat.mul_eq_zero_iff
+  specialize h n m
+  tauto
 
 /-- Proposition 2.3.4 (Distributive law)-/
 theorem Nat.mul_add (a b c: Nat) : a * (b + c) = a * b + a * c := by
@@ -84,7 +121,12 @@ theorem Nat.add_mul (a b c: Nat) : (a + b)*c = a*c + b*c := by
 
 /-- Proposition 2.3.5 (Multiplication is associative) / Exercise 2.3.3 -/
 theorem Nat.mul_assoc (a b c: Nat) : (a * b) * c = a * (b * c) := by
-  sorry
+  -- This is a formalization of the model solution at https://taoanalysis.wordpress.com/2020/04/04/exercise-2-3-3/
+  revert a; apply induction
+  . rw [Nat.zero_mul, Nat.zero_mul]
+    rw [Nat.zero_mul]
+  . intro a hind
+    rw [Nat.succ_mul, Nat.add_mul, hind, ← Nat.succ_mul]
 
 /-- (Not from textbook)  Nat is a commutative semiring. -/
 instance Nat.instCommSemiring : CommSemiring Nat where
