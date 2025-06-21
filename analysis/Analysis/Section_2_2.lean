@@ -212,6 +212,9 @@ lemma Nat.le_iff (n m:Nat) : n ≤ m ↔ ∃ a:Nat, m = n + a := by rfl
 
 lemma Nat.lt_iff (n m:Nat) : n < m ↔ (∃ a:Nat, m = n + a) ∧ n ≠ m := by rfl
 
+-- This lemma was added by Issa.
+lemma Nat.lt_iff_le_and_ne (n m : Nat) : n < m ↔ n ≤ m ∧ n ≠ m := by rfl
+
 lemma Nat.ge_iff_le (n m:Nat) : n ≥ m ↔ m ≤ n := by rfl
 
 lemma Nat.gt_iff_lt (n m:Nat) : n > m ↔ m < n := by rfl
@@ -542,6 +545,9 @@ instance Nat.linearOrder : LinearOrder Nat where
       rw [Nat.le_iff_lt_or_eq] at h
       rw [Nat.le_iff_lt_or_eq] at h
       tauto
+    rw [Nat.gt_iff_lt] at this
+    rw [Nat.lt_iff] at this
+    exact this.right
   le_antisymm a b hab hba := ge_antisymm hba hab
   le_total := by
     -- This part was written by Issa.
@@ -559,13 +565,71 @@ instance Nat.isOrderedAddMonoid : IsOrderedAddMonoid Nat where
     intro a b hab c
     exact (add_le_add_left a b c).mp hab
 
+-- This lemma was added by Issa.
+lemma Nat.le_succ_cancel {a b : Nat} (h : a++ ≤ b++) : a ≤ b := by
+  rw [Nat.succ_eq_add_one, Nat.succ_eq_add_one] at h
+  rw [← Nat.ge_iff_le] at h
+  rw [← Nat.add_ge_add_right] at h
+  rw [Nat.ge_iff_le] at h
+  exact h
+
+-- This lemma was added by Issa.
+lemma Nat.le_trans {a b c : Nat} (hab : a ≤ b) (hbc : b ≤ c) : a ≤ c := by
+  rw [← Nat.ge_iff_le]
+  rw [← Nat.ge_iff_le] at hab
+  rw [← Nat.ge_iff_le] at hbc
+  exact Nat.ge_trans hbc hab
+
+-- This lemma was added by Issa.
+lemma Nat.lt_trans (a b c : Nat) (hab : a < b) (hbc : b < c) : a < c := by
+  rw [Nat.lt_iff] at hab
+  rw [← Nat.le_iff] at hab
+  rw [Nat.lt_iff] at hbc
+  rw [← Nat.le_iff] at hbc
+  have haleqc : a ≤ c := Nat.le_trans hab.left hbc.left
+  have hanec : a ≠ c := by
+    by_contra this
+    rw [this] at hab
+    have : b = c := by
+      rw [← Nat.ge_iff_le] at hab
+      rw [← Nat.ge_iff_le] at hbc
+      apply Nat.ge_antisymm
+      exact hab.left
+      exact hbc.left
+    tauto
+  rw [Nat.lt_iff]
+  rw [← Nat.le_iff]
+  constructor
+  exact haleqc
+  exact hanec
+
+-- This lemma was added by Issa.
+lemma Nat.le_lt_trans {a b c : Nat} (hab : a ≤ b) (hbc : b < c) : a < c := by
+  have h1 : b ≤ c := by
+    rw [Nat.lt_iff] at hbc
+    rw [← Nat.le_iff] at hbc
+    exact hbc.left
+  have h2 := Nat.le_trans hab h1
+  rw [Nat.le_iff_lt_or_eq] at h2
+  obtain hlt|heq := h2
+  exact hlt
+  rw [← heq] at hbc
+  rw [Nat.lt_iff] at hbc
+  rw [← Nat.le_iff] at hbc
+  obtain ⟨ h2, h3 ⟩ := hbc
+  have : b = a := by
+    rw [← Nat.ge_iff_le] at hab
+    rw [← Nat.ge_iff_le] at h2
+    exact Nat.ge_antisymm hab h2
+  contradiction
+
 /-- Proposition 2.2.14 (Strong principle of induction) / Exercise 2.2.5
 -/
 theorem Nat.strong_induction {m₀:Nat} {P: Nat → Prop}
   (hind: ∀ m, m ≥ m₀ → (∀ m', m₀ ≤ m' ∧ m' < m → P m') → P m) :
     ∀ m, m ≥ m₀ → P m := by
   -- This proof was written by Issa.
-  let Q (n : Nat) : Prop := ∀ m', m₀ ≤ m' ∧ m' < n → P m'
+  let Q (n : Nat) := ∀ m', m₀ ≤ m' ∧ m' < n → P m'
   have hind_using_Q : ∀ m, m ≥ m₀ → Q m → P m := hind
   have Qn : ∀ n, Q n := by
     apply induction
@@ -584,23 +648,48 @@ theorem Nat.strong_induction {m₀:Nat} {P: Nat → Prop}
       intro h1
       have : (m₀ ≤ m ∧ m < n) ∨ m = n := by
         rw [Nat.lt_iff_succ_le] at h1
-        rw [Nat.succ_eq_add_one, Nat.succ_eq_add_one] at h1
-        nth_rewrite 2 [← Nat.ge_iff_le] at h1
-        rw [← Nat.add_ge_add_right] at h1
-        rw [Nat.ge_iff_le] at h1
-        have h2 := h1.right
-        rw [Nat.le_iff_lt_or_eq] at h2
-        obtain h3 | h4 := h2
+        obtain ⟨ h0, h1 ⟩ := h1
+        apply Nat.le_succ_cancel at h1
+        rw [Nat.le_iff_lt_or_eq] at h1
+        obtain h2 | h3 := h1
         . left
-          constructor
-          exact h1.left
-          exact h3
+          exact And.intro h0 h2
         . right
-          exact h4
+          exact h3
       obtain h2 | h3 := this
-      . sorry
-      . sorry
-
+      . unfold Q at h
+        specialize h m
+        exact h h2
+      . have h4 : m ≤ n++ := by
+          rw [Nat.lt_iff_le_and_ne] at h1
+          exact h1.right.left
+        have h5 := Nat.le_trans h1.left h4
+        have : m₀ ≠ n++ := by
+          obtain ⟨ h6, h7 ⟩ := h1
+          have h8 := Nat.le_lt_trans h6 h7
+          rw [Nat.lt_iff] at h8
+          exact h8.right
+        have : m₀ ≤ n++ ∧ m₀ ≠ n++ := by tauto
+        rw [← Nat.lt_iff_le_and_ne] at this
+        rw [Nat.lt_iff_succ_le] at this
+        apply Nat.le_succ_cancel at this
+        rw [← Nat.ge_iff_le] at this
+        specialize hind_using_Q n
+        have h6 := hind_using_Q this
+        have h7 := h6 h
+        rw [h3]
+        exact h7
+  intro m h
+  specialize Qn (m++)
+  unfold Q at Qn
+  specialize Qn m
+  have : m < m++ := by
+    rw [← Nat.gt_iff_lt]
+    apply Nat.succ_gt
+  rw [Nat.ge_iff_le] at h
+  have h1 := And.intro h this
+  apply Qn at h1
+  exact h1
 
 /-- Exercise 2.2.6 (backwards induction) -/
 theorem Nat.backwards_induction {n:Nat} {P: Nat → Prop}
