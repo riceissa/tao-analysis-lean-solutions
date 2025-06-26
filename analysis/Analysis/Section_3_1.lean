@@ -143,11 +143,29 @@ theorem SetTheory.Set.not_mem_empty : ∀ x, x ∉ (∅:Set) := SetTheory.emptys
 
 /-- Empty set has no elements -/
 theorem SetTheory.Set.eq_empty_iff_forall_notMem {X:Set} : X = ∅ ↔ (∀ x, x ∉ X) := by
-  sorry
+  constructor
+  intro h
+  rw [h]
+  have := not_mem_empty
+  exact this
+  have := not_mem_empty
+  intro h
+  apply ext
+  intro x
+  specialize h x
+  specialize this x
+  tauto
 
 /-- Empty set is unique -/
 theorem SetTheory.Set.empty_unique : ∃! (X:Set), ∀ x, x ∉ X := by
-  sorry
+  apply existsUnique_of_exists_of_unique
+  use ∅
+  exact not_mem_empty
+  intro X Y
+  intro hX hY
+  rw [← eq_empty_iff_forall_notMem] at hX
+  rw [← eq_empty_iff_forall_notMem] at hY
+  rw [hX, hY]
 
 /-- Lemma 3.1.5 (Single choice) -/
 lemma SetTheory.Set.nonempty_def {X:Set} (h: X ≠ ∅) : ∃ x, x ∈ X := by
@@ -199,7 +217,20 @@ theorem SetTheory.Set.mem_triple (x a b:Object) : x ∈ ({a,b,c}:Set) ↔ (x = a
   simp [Insert.insert, mem_union, mem_singleton]
 
 /-- Remark 3.1.8 -/
-theorem SetTheory.Set.singleton_uniq (a:Object) : ∃! (X:Set), ∀ x, x ∈ X ↔ x = a := by sorry
+theorem SetTheory.Set.singleton_uniq (a:Object) : ∃! (X:Set), ∀ x, x ∈ X ↔ x = a := by
+  apply existsUnique_of_exists_of_unique
+  . use {a}
+    intro x
+    have := mem_singleton
+    specialize this x a
+    exact this
+  intro X1 X2
+  intro hX1 hX2
+  rw [ext_iff]
+  intro x
+  specialize hX1 x
+  specialize hX2 x
+  tauto
 
 /-- Remark 3.1.8 -/
 theorem SetTheory.Set.pair_uniq (a b:Object) : ∃! (X:Set), ∀ x, x ∈ X ↔ x = a ∨ x = b := by sorry

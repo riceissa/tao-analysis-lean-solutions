@@ -191,27 +191,70 @@ example {X Y Z:Prop} (h: [X,Y,Z].TFAE) : X ↔ Y := by
   exact h.out 0 1
 
 /-- Exercise A.1.1.  Fill in the first `sorry` with something reasonable. -/
-example {X Y:Prop} : ¬ ((X ∨ Y) ∧ ¬ (X ∧ Y)) ↔ sorry := by sorry
+example {X Y:Prop} : ¬ ((X ∨ Y) ∧ ¬ (X ∧ Y)) ↔ (X ↔ Y) := by
+  tauto
 
 /-- Exercise A.1.2.  Fill in the first `sorry` with something reasonable. -/
-example {X Y:Prop} : ¬ (X ↔ Y) ↔ sorry := by sorry
+example {X Y:Prop} : ¬ (X ↔ Y) ↔ (Xor' X Y) := by
+  unfold Xor'
+  tauto
 
 /-- Exercise A.1.3. -/
 def Exercise_A_1_3 : Decidable (∀ (X Y: Prop), (X → Y) → (¬X → ¬ Y) → (X ↔ Y)) := by
   -- the first line of this construction should be either `apply isTrue` or `apply isFalse`, depending on whether you believe the given statement to be true or false.
-  sorry
+  -- This proof was written to follow https://taoanalysis.wordpress.com/2020/04/14/exercise-a-1-3/
+  apply isTrue
+  intro X Y
+  intro h1 h2
+  constructor
+  . exact h1
+  intro hY
+  by_contra hc
+  have : ¬Y := h2 hc
+  contradiction
+
 
 /-- Exercise A.1.4. -/
 def Exercise_A_1_4 : Decidable (∀ (X Y: Prop), (X → Y) → (¬Y → ¬ X) → (X ↔ Y)) := by
   -- the first line of this construction should be either `apply isTrue` or `apply isFalse`.
-  sorry
+  apply isFalse
+  let x : ℝ := 0
+  let X : Prop := x > 0
+  let Y : Prop := x ≥ 0
+  simp
+  use X
+  use Y
+  constructor
+  . tauto
+  constructor
+  . intro h
+    unfold Y at h
+    unfold X
+    simp
+    tauto
+  unfold X Y x
+  simp
+
 
 /-- Exercise A.1.5. -/
 def Exercise_A_1_5 : Decidable (∀ (X Y Z: Prop), (X ↔ Y) → (Y ↔ Z) → [X,Y,Z].TFAE) := by
   -- the first line of this construction should be either `apply isTrue` or `apply isFalse`.
-  sorry
+  apply isTrue
+  intro X Y Z
+  intro hXY
+  intro hYZ
+  tfae_have 1 → 2 := hXY.1
+  tfae_have 2 → 3 := hYZ.1
+  tfae_have 3 → 1 := by
+    intro hZ
+    exact hXY.2 (hYZ.2 hZ)
+  -- It seems that tfae_finish is actually smart enough to finish this proof without any of the tfae_have's... I'm not sure how to dumb down Lean enough that we can manually do the proof ourselves.
+  tfae_finish
 
 /-- Exercise A.1.6. -/
 def Exercise_A_1_6 : Decidable (∀ (X Y Z: Prop), (X → Y) → (Y → Z) → (Z → X) → [X,Y,Z].TFAE) := by
   -- the first line of this construction should be either `apply isTrue` or `apply isFalse`.
-  sorry
+  apply isTrue
+  intro X Y Z
+  intro hXY hYZ hZX
+  tfae_finish
