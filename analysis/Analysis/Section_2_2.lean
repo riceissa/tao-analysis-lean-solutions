@@ -312,7 +312,7 @@ theorem Nat.ge_antisymm {a b:Nat} (hab: a ≥ b) (hba: b ≥ a) : a = b := by
   rw [hy] at hx
   rw [Nat.add_assoc] at hx
   nth_rewrite 1 [← Nat.add_zero a] at hx
-  apply Nat.add_cancel_left at hx
+  apply Nat.add_left_cancel at hx
   symm at hx
   apply Nat.add_eq_zero at hx
   have hyz : y = 0 := hx.left
@@ -343,7 +343,7 @@ theorem Nat.add_ge_add_right (a b c:Nat) : a ≥ b ↔ a + c ≥ b + c := by
   rw [Nat.add_comm] at hd
   rw [Nat.add_comm b c] at hd
   rw [Nat.add_assoc] at hd
-  apply Nat.add_cancel_left at hd
+  apply add_left_cancel at hd
   exact hd
 
 /-- (d) (Addition preserves order).  Compare with Mathlib's `Nat.add_le_add_left`  -/
@@ -397,7 +397,7 @@ theorem Nat.lt_iff_succ_le (a b:Nat) : a < b ↔ a++ ≤ b := by
   rw [Nat.succ_add] at hd
   rw [← Nat.add_succ] at hd
   nth_rewrite 1 [← Nat.add_zero b] at hd
-  apply Nat.add_cancel_left at hd
+  apply add_left_cancel at hd
   symm at hd
   apply Nat.succ_ne at hd
   exact hd
@@ -518,7 +518,7 @@ def Nat.decLe : (a b : Nat) → Decidable (a ≤ b)
         -- This part was done by Issa.
         by_contra h'
         rw [← h] at h'
-        have ha : a++ > a := Nat.succ_gt a
+        have ha : a++ > a := succ_gt_self a
         rw [Nat.le_iff_lt_or_eq] at h'
         rcases h' with h1 | h2
         apply Nat.not_lt_of_gt (a++) a
@@ -529,7 +529,7 @@ def Nat.decLe : (a b : Nat) → Decidable (a ≤ b)
         rw [Nat.succ_add] at h2
         rw [← Nat.add_succ] at h2
         nth_rewrite 2 [← Nat.add_zero a] at h2
-        apply Nat.add_cancel_left at h2
+        apply add_left_cancel at h2
         apply Nat.succ_ne at h2
         exact h2
       | isFalse h =>
@@ -715,7 +715,7 @@ theorem Nat.strong_induction {m₀:Nat} {P: Nat → Prop}
   specialize Qn m
   have : m < m++ := by
     rw [← Nat.gt_iff_lt]
-    apply Nat.succ_gt
+    apply succ_gt_self
   rw [Nat.ge_iff_le] at h
   have h1 := And.intro h this
   apply Qn at h1
