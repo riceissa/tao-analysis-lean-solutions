@@ -233,14 +233,38 @@ theorem SetTheory.Set.singleton_uniq (a:Object) : ∃! (X:Set), ∀ x, x ∈ X �
   tauto
 
 /-- Remark 3.1.8 -/
-theorem SetTheory.Set.pair_uniq (a b:Object) : ∃! (X:Set), ∀ x, x ∈ X ↔ x = a ∨ x = b := by sorry
+theorem SetTheory.Set.pair_uniq (a b:Object) : ∃! (X:Set), ∀ x, x ∈ X ↔ x = a ∨ x = b := by
+  apply existsUnique_of_exists_of_unique
+  . use {a, b}
+    have := SetTheory.Set.mem_pair
+    intro x
+    specialize this x a b
+    exact this
+  intro X1 X2
+  intro hX1 hX2
+  rw [ext_iff]
+  intro x
+  specialize hX1 x
+  specialize hX2 x
+  tauto
 
 /-- Remark 3.1.8 -/
-theorem SetTheory.Set.pair_comm (a b:Object) : ({a,b}:Set) = {b,a} := by sorry
+theorem SetTheory.Set.pair_comm (a b:Object) : ({a,b}:Set) = {b,a} := by
+  rw [ext_iff]
+  intro x
+  have := mem_pair
+  specialize this x
+  have this2 := this
+  specialize this a b
+  specialize this2 b a
+  tauto
 
 /-- Remark 3.1.8 -/
 theorem SetTheory.Set.pair_self (a:Object) : ({a,a}:Set) = {a} := by
-  sorry
+  rw [ext_iff]
+  -- NOTE(issa 2025-06-25): I just noticed that theorems like mem_singleton and mem_pair are tagged with simp, which means they are apparently automagically used when you use the simp tactic??? So like, this proof can be completed just by using simp????????? This seems like cheating, but it works...
+  simp
+
 
 /-- Exercise 3.1.1 -/
 theorem SetTheory.Set.pair_eq_pair {a b c d:Object} (h: ({a,b}:Set) = {c,d}) :
