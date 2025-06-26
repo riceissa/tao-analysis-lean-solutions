@@ -264,9 +264,29 @@ theorem Nat.zero_pow_zero : (0:Nat) ^ 0 = 1 := recurse_zero (fun _ prod ↦ prod
 theorem Nat.pow_succ (m n: Nat) : (m:Nat) ^ n++ = m^n * m :=
   recurse_succ (fun _ prod ↦ prod * m) _ _
 
+lemma Nat.pow_one (m: Nat) : m ^ (1:Nat) = m := by
+  rw [← zero_succ]
+  rw [pow_succ]
+  rw [pow_zero]
+  rw [one_mul]
+
+lemma Nat.self_mul_is_squared (m : Nat) : m * m = m ^ (2:Nat) := by
+  nth_rewrite 2 [← pow_one m]
+  rw [mul_comm]
+  rw [← pow_succ]
+  rw [one_succ]
+
 /-- Exercise 2.3.4-/
 theorem Nat.sq_add_eq (a b: Nat) :
     (a + b) ^ (2 : Nat) = a ^ (2 : Nat) + 2 * a * b + b ^ (2 : Nat) := by
-  sorry
+  -- This proof was written to emulate https://taoanalysis.wordpress.com/2020/03/15/exercise-2-3-4/
+  rw [← self_mul_is_squared]
+  rw [mul_add, add_mul]
+  rw [self_mul_is_squared]
+  rw [mul_comm b a]
+  rw [add_mul]
+  rw [self_mul_is_squared]
+  -- NOTE(issa 2025-06-26): The ring tactic is a little too powerful for my taste, but doing all the add_assoc to rearrange things just right is too annoying, so I will leave it like this for now...
+  ring
 
 end Chapter2
