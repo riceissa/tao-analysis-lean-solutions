@@ -25,16 +25,22 @@ standard Mathlib class `_root_.Nat`, or `ℕ`.  However, we will develop the pro
 
 namespace Chapter2
 
-/-- Definition 2.2.1. (Addition of natural numbers). -/
+/-- Definition 2.2.1. (Addition of natural numbers).
+    Compare with Mathlib's `Nat.add` -/
 abbrev Nat.add (n m : Nat) : Nat := Nat.recurse (fun _ sum ↦ sum++) m n
 
+/-- This instance allows for the `+` notation to be used for natural number addition. -/
 instance Nat.instAdd : Add Nat where
   add := add
 
+/-- Compare with Mathlib's `Nat.zero_add`-/
+@[simp]
 theorem Nat.zero_add (m: Nat) : 0 + m = m := recurse_zero (fun _ sum ↦ sum++) _
 
+/-- Compare with Mathlib's `Nat.succ_add` -/
 theorem Nat.succ_add (n m: Nat) : n++ + m = (n+m)++ := by rfl
 
+/-- Compare with Mathlib's `Nat.one_add` -/
 theorem Nat.one_add (m:Nat) : 1 + m = m++ := by
   rw [show 1 = 0++ from rfl, succ_add, zero_add]
 
@@ -47,7 +53,8 @@ example : (2:Nat) + 3 = 5 := by
 -- sum of two natural numbers is again a natural number
 #check (fun (n m:Nat) ↦ n + m)
 
-/-- Lemma 2.2.2 (n + 0 = n) -/
+/-- Lemma 2.2.2 (n + 0 = n). Compare with Mathlib's `Nat.add_zero` -/
+@[simp]
 lemma Nat.add_zero (n:Nat) : n + 0 = n := by
   -- this proof is written to follow the structure of the original text.
   revert n; apply induction
@@ -57,7 +64,7 @@ lemma Nat.add_zero (n:Nat) : n + 0 = n := by
     (n++) + 0 = (n + 0)++ := by rfl
     _ = n++ := by rw [ih]
 
-/-- Lemma 2.2.3 (n+(m++) = (n+m)++). -/
+/-- Lemma 2.2.3 (n+(m++) = (n+m)++). Compare with Mathlib's `Nat.add_succ` -/
 lemma Nat.add_succ (n m:Nat) : n + (m++) = (n + m)++ := by
   -- this proof is written to follow the structure of the original text.
   revert n; apply induction
@@ -67,13 +74,13 @@ lemma Nat.add_succ (n m:Nat) : n + (m++) = (n + m)++ := by
   rw [succ_add]
 
 
-/-- n++ = n + 1 (Why?) -/
+/-- n++ = n + 1 (Why?). Compare with Mathlib's `Nat.succ_eq_add_one` -/
 theorem Nat.succ_eq_add_one (n:Nat) : n++ = n + 1 := by
   -- This proof was written by Issa.
   rw [← zero_succ]
   rw [add_succ, add_zero]
 
-/-- Proposition 2.2.4 (Addition is commutative) -/
+/-- Proposition 2.2.4 (Addition is commutative). Compare with Mathlib's `Nat.add_comm` -/
 theorem Nat.add_comm (n m:Nat) : n + m = m + n := by
   -- this proof is written to follow the structure of the original text.
   revert n; apply induction
@@ -86,7 +93,8 @@ lemma Nat.add_one (n : Nat) : n + 1 = succ n := by
   rw [add_comm]
   exact one_add n
 
-/-- Proposition 2.2.5 (Addition is associative) / Exercise 2.2.1-/
+/-- Proposition 2.2.5 (Addition is associative) / Exercise 2.2.1
+    Compare with Mathlib's `Nat.add_assoc` -/
 theorem Nat.add_assoc (a b c:Nat) : (a + b) + c = a + (b + c) := by
   -- This proof was written by Issa.
   revert a; apply induction
@@ -95,8 +103,9 @@ theorem Nat.add_assoc (a b c:Nat) : (a + b) + c = a + (b + c) := by
   repeat rw [succ_add]
   rw [ih]
 
-/-- Proposition 2.2.6 (Cancellation law) -/
-theorem Nat.add_cancel_left (a b c:Nat) (habc: a + b = a + c) : b = c := by
+/-- Proposition 2.2.6 (Cancellation law)
+    Compare with Mathlib's `Nat.add_left_cancel` -/
+theorem Nat.add_left_cancel (a b c:Nat) (habc: a + b = a + c) : b = c := by
   -- this proof is written to follow the structure of the original text.
   revert a; apply induction
   . intro hbc
@@ -121,10 +130,9 @@ def Nat.isPos (n:Nat) : Prop := n ≠ 0
 
 theorem Nat.isPos_iff (n:Nat) : n.isPos ↔ n ≠ 0 := by rfl
 
-
-
-/-- Proposition 2.2.8 (positive plus natural number is positive).-/
-theorem Nat.pos_add {a:Nat} (b:Nat) (ha: a.isPos) : (a + b).isPos := by
+/-- Proposition 2.2.8 (positive plus natural number is positive).
+    Compare with Mathlib's `Nat.add_pos_left` -/
+theorem Nat.add_pos_left {a:Nat} (b:Nat) (ha: a.isPos) : (a + b).isPos := by
   -- this proof is written to follow the structure of the original text.
   revert b; apply induction
   . rwa [add_zero]
@@ -133,21 +141,23 @@ theorem Nat.pos_add {a:Nat} (b:Nat) (ha: a.isPos) : (a + b).isPos := by
   have : (a+b)++ ≠ 0 := succ_ne _
   exact this
 
-theorem Nat.add_pos {a:Nat} (b:Nat) (ha: a.isPos) : (b + a).isPos := by
+/-- Compare with Mathlib's `Nat.add_pos_right` -/
+theorem Nat.add_pos_right {a:Nat} (b:Nat) (ha: a.isPos) : (b + a).isPos := by
   rw [add_comm]
-  exact pos_add _ ha
+  exact add_pos_left _ ha
 
-/-- Corollary 2.2.9 (if sum vanishes, then summands vanish).-/
+/-- Corollary 2.2.9 (if sum vanishes, then summands vanish).
+    Compare with Mathlib's `Nat.add_eq_zero` -/
 theorem Nat.add_eq_zero (a b:Nat) (hab: a + b = 0) : a = 0 ∧ b = 0 := by
   -- this proof is written to follow the structure of the original text.
   by_contra h
   simp only [not_and_or, ←ne_eq] at h
   rcases h with ha | hb
   . rw [← isPos_iff] at ha
-    have : (a + b).isPos := pos_add _ ha
+    have : (a + b).isPos := add_pos_left _ ha
     contradiction
   rw [← isPos_iff] at hb
-  have : (a + b).isPos := add_pos _ hb
+  have : (a + b).isPos := add_pos_right _ hb
   contradiction
 
 /-
@@ -207,13 +217,15 @@ lemma Nat.succ_eq (a:Nat) (ha: a.isPos) : ∃ b, b++ = a := by
   exact h1
 -/
 
-/-- Definition 2.2.11 (Ordering of the natural numbers) -/
+/-- Definition 2.2.11 (Ordering of the natural numbers)
+    This defines the `≤` operation on the natural numbers. -/
 instance Nat.instLE : LE Nat where
   le n m := ∃ a:Nat, m = n + a
 
-/-- Definition 2.2.11 (Ordering of the natural numbers) -/
+/-- Definition 2.2.11 (Ordering of the natural numbers)
+    This defines the `<` notation on the natural numbers. -/
 instance Nat.instLT : LT Nat where
-  lt n m := (∃ a:Nat, m = n + a) ∧ n ≠ m
+  lt n m := n ≤ m ∧ n ≠ m
 
 lemma Nat.le_iff (n m:Nat) : n ≤ m ↔ ∃ a:Nat, m = n + a := by rfl
 
@@ -222,12 +234,16 @@ lemma Nat.lt_iff (n m:Nat) : n < m ↔ (∃ a:Nat, m = n + a) ∧ n ≠ m := by 
 -- This lemma was added by Issa.
 lemma Nat.lt_iff_le_and_ne (n m : Nat) : n < m ↔ n ≤ m ∧ n ≠ m := by rfl
 
+/-- Compare with Mathlib's `ge_iff_le` -/
 lemma Nat.ge_iff_le (n m:Nat) : n ≥ m ↔ m ≤ n := by rfl
 
+/-- Compare with Mathlib's `gt_iff_lt` -/
 lemma Nat.gt_iff_lt (n m:Nat) : n > m ↔ m < n := by rfl
 
+/-- Compare with Mathlib's `Nat.le_of_lt` -/
 lemma Nat.le_of_lt {n m:Nat} (hnm: n < m) : n ≤ m := hnm.1
 
+/-- Compare with Mathlib's `Nat.le_iff_lt_or_eq` -/
 lemma Nat.le_iff_lt_or_eq (n m:Nat) : n ≤ m ↔ n < m ∨ n = m := by
   rw [Nat.le_iff, Nat.lt_iff]
   by_cases h : n = m
@@ -244,7 +260,8 @@ example : (8:Nat) > 5 := by
     use 3
   decide
 
-theorem Nat.succ_gt (n:Nat) : n++ > n := by
+/-- Compare with Mathlib's `Nat.lt_succ_self`-/
+theorem Nat.succ_gt_self (n:Nat) : n++ > n := by
   -- This proof was written by Issa.
   rw [Nat.gt_iff_lt, Nat.lt_iff]
   constructor
@@ -262,14 +279,15 @@ theorem Nat.succ_gt (n:Nat) : n++ > n := by
 
 /-- Proposition 2.2.12 (Basic properties of order for natural numbers) / Exercise 2.2.3
 
-(a) (Order is reflexive). -/
+(a) (Order is reflexive). Compare with Mathlib's `Nat.le_refl`-/
 theorem Nat.ge_refl (a:Nat) : a ≥ a := by
   -- This proof was written by Issa.
   rw [Nat.ge_iff_le, Nat.le_iff]
   use 0
   rw [Nat.add_zero]
 
-/-- (b) (Order is transitive).  The `obtain` tactic will be useful here. -/
+/-- (b) (Order is transitive).  The `obtain` tactic will be useful here.
+    Compare with Mathlib's `Nat.le_trans` -/
 theorem Nat.ge_trans {a b c:Nat} (hab: a ≥ b) (hbc: b ≥ c) : a ≥ c := by
   -- This proof was written by Issa.
   rw [Nat.ge_iff_le]
@@ -284,7 +302,7 @@ theorem Nat.ge_trans {a b c:Nat} (hab: a ≥ b) (hbc: b ≥ c) : a ≥ c := by
   rw [hx, hy]
   rw [Nat.add_assoc]
 
-/-- (c) (Order is anti-symmetric)  -/
+/-- (c) (Order is anti-symmetric). Compare with Mathlib's `Nat.le_antisymm`  -/
 theorem Nat.ge_antisymm {a b:Nat} (hab: a ≥ b) (hba: b ≥ a) : a = b := by
   -- This proof was written by Issa.
   rw [Nat.ge_iff_le, Nat.le_iff] at hab
@@ -305,7 +323,7 @@ theorem Nat.ge_antisymm {a b:Nat} (hab: a ≥ b) (hba: b ≥ a) : a = b := by
 
 
 
-/-- (d) (Addition preserves order)  -/
+/-- (d) (Addition preserves order).  Compare with Mathlib's `Nat.add_le_add_right`  -/
 theorem Nat.add_ge_add_right (a b c:Nat) : a ≥ b ↔ a + c ≥ b + c := by
   -- This proof was written by Issa.
   rw [Nat.ge_iff_le, Nat.ge_iff_le]
@@ -328,18 +346,18 @@ theorem Nat.add_ge_add_right (a b c:Nat) : a ≥ b ↔ a + c ≥ b + c := by
   apply Nat.add_cancel_left at hd
   exact hd
 
-/-- (d) (Addition preserves order)  -/
+/-- (d) (Addition preserves order).  Compare with Mathlib's `Nat.add_le_add_left`  -/
 theorem Nat.add_ge_add_left (a b c:Nat) : a ≥ b ↔ c + a ≥ c + b := by
   simp only [add_comm]
   exact add_ge_add_right _ _ _
 
-/-- (d) (Addition preserves order)  -/
+/-- (d) (Addition preserves order).  Compare with Mathlib's `Nat.add_le_add_right`  -/
 theorem Nat.add_le_add_right (a b c:Nat) : a ≤ b ↔ a + c ≤ b + c := add_ge_add_right _ _ _
 
-/-- (d) (Addition preserves order)  -/
+/-- (d) (Addition preserves order).  Compare with Mathlib's `Nat.add_le_add_left`  -/
 theorem Nat.add_le_add_left (a b c:Nat) : a ≤ b ↔ c + a ≤ c + b := add_ge_add_left _ _ _
 
-/-- (e) a < b iff a++ ≤ b. -/
+/-- (e) a < b iff a++ ≤ b.  Compare with Mathlib's `Nat.succ_le_iff` -/
 theorem Nat.lt_iff_succ_le (a b:Nat) : a < b ↔ a++ ≤ b := by
   -- This proof was written by Issa.
   rw [Nat.lt_iff]
@@ -430,7 +448,8 @@ theorem Nat.not_lt_of_gt (a b:Nat) : a < b ∧ a > b → False := by
   contradiction
 
 
-/-- Proposition 2.2.13 (Trichotomy of order for natural numbers) / Exercise 2.2.4 -/
+/-- Proposition 2.2.13 (Trichotomy of order for natural numbers) / Exercise 2.2.4
+    Compare with Mathlib's `trichotomous` -/
 theorem Nat.trichotomous (a b:Nat) : a < b ∨ a = b ∨ a > b := by
   -- this proof is written to follow the structure of the original text.
   revert a; apply induction
@@ -481,15 +500,17 @@ theorem Nat.trichotomous (a b:Nat) : a < b ∨ a = b ∨ a > b := by
   natural numbers.  One could also have established this result by the `classical` tactic
   followed by `exact Classical.decRel _`, but this would make this definition (as well as some
   instances below) noncomputable.
+
+  Compare with Mathlib's `Nat.decLe`
 -/
-def Nat.le_dec : (a b : Nat) → Decidable (a ≤ b)
+def Nat.decLe : (a b : Nat) → Decidable (a ≤ b)
   | 0, b => by
     apply isTrue
     -- This part was done by Issa.
     use b
     rw [Nat.zero_add]
   | a++, b => by
-    cases le_dec a b with
+    cases decLe a b with
     | isTrue h =>
       cases decEq a b with
       | isTrue h =>
@@ -527,7 +548,7 @@ def Nat.le_dec : (a b : Nat) → Decidable (a ≤ b)
       rw [← Nat.le_iff] at h
       tauto
 
-instance Nat.decidableRel : DecidableRel (· ≤ · : Nat → Nat → Prop) := Nat.le_dec
+instance Nat.decidableRel : DecidableRel (· ≤ · : Nat → Nat → Prop) := Nat.decLe
 
 
 /-- (Not from textbook) Nat has the structure of a linear ordering. -/
@@ -632,6 +653,7 @@ lemma Nat.le_lt_trans {a b c : Nat} (hab : a ≤ b) (hbc : b < c) : a < c := by
   contradiction
 
 /-- Proposition 2.2.14 (Strong principle of induction) / Exercise 2.2.5
+    Compare with Mathlib's `Nat.strong_induction_on`
 -/
 theorem Nat.strong_induction {m₀:Nat} {P: Nat → Prop}
   (hind: ∀ m, m ≥ m₀ → (∀ m', m₀ ≤ m' ∧ m' < m → P m') → P m) :
@@ -707,7 +729,8 @@ lemma Nat.eq_zero_of_le_zero (n : Nat) (h: n ≤ 0) : n = 0 := by
   apply Nat.add_eq_zero at ha
   exact ha.left
 
-/-- Exercise 2.2.6 (backwards induction) -/
+/-- Exercise 2.2.6 (backwards induction)
+    Compare with Mathlib's `Nat.decreasingInduction` -/
 theorem Nat.backwards_induction {n:Nat} {P: Nat → Prop}
   (hind: ∀ m, P (m++) → P m) (hn: P n) :
     ∀ m, m ≤ n → P m := by
@@ -751,7 +774,8 @@ theorem Nat.backwards_induction {n:Nat} {P: Nat → Prop}
   unfold Q at this
   exact this hn
 
-/-- Exercise 2.2.7 (induction from a starting point) -/
+/-- Exercise 2.2.7 (induction from a starting point)
+    Compare with Mathlib's `Nat.le_induction` -/
 theorem Nat.induction_from {n:Nat} {P: Nat → Prop} (hind: ∀ m, P m → P (m++)) :
     P n → ∀ m, m ≥ n → P m := by
   intro h
