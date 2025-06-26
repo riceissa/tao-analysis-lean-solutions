@@ -269,7 +269,22 @@ theorem SetTheory.Set.pair_self (a:Object) : ({a,a}:Set) = {a} := by
 /-- Exercise 3.1.1 -/
 theorem SetTheory.Set.pair_eq_pair {a b c d:Object} (h: ({a,b}:Set) = {c,d}) :
     a = c ∧ b = d ∨ a = d ∧ b = c := by
-  sorry
+  rw [ext_iff] at h
+  simp at h
+  have := h
+  specialize h a
+  have : a = c ∨ a = d := by
+    tauto
+  rcases this with h1|h2
+  . left
+    specialize this b
+    have : b = c ∨ b = d := by
+      tauto
+    constructor
+    . exact h1
+    rcases this with h2|h3
+
+
 
 abbrev SetTheory.Set.empty : Set := ∅
 abbrev SetTheory.Set.singleton_empty : Set := {empty.toObject}
