@@ -276,6 +276,9 @@ theorem Nat.succ_gt_self (n:Nat) : n++ > n := by
   apply Nat.succ_ne_succ at hn
   exact hn
 
+lemma Nat.lt_succ_self (n:Nat) : n < n++ := by
+  rw [← gt_iff_lt]
+  exact succ_gt_self n
 
 /-- Proposition 2.2.12 (Basic properties of order for natural numbers) / Exercise 2.2.3
 
@@ -652,10 +655,83 @@ lemma Nat.le_lt_trans {a b c : Nat} (hab : a ≤ b) (hbc : b < c) : a < c := by
     exact Nat.ge_antisymm hab h2
   contradiction
 
+lemma Nat.le_lt_succ_split {a b c: Nat} (h : a ≤ b ∧ b < c++) : (a ≤ b ∧ b < c) ∨ b = c := by
+  rw [Nat.lt_iff_succ_le] at h
+  obtain ⟨ h0, h1 ⟩ := h
+  apply le_succ_cancel at h1
+  rw [le_iff_lt_or_eq] at h1
+  rcases h1 with h2 | h3
+  . left
+    exact And.intro h0 h2
+  right
+  exact h3
+
+lemma Nat.blahhh {a b c x : Nat} {P : Nat → Prop} (h : ¬∃x, P x) : x=x+1 := by
+  rw [not_exists] at h
+
+
+
 /-- Proposition 2.2.14 (Strong principle of induction) / Exercise 2.2.5
     Compare with Mathlib's `Nat.strong_induction_on`
 -/
 theorem Nat.strong_induction {m₀:Nat} {P: Nat → Prop}
+  (hind: ∀ m, m ≥ m₀ → (∀ m', m₀ ≤ m' ∧ m' < m → P m') → P m) :
+    ∀ m, m ≥ m₀ → P m := by
+  let Q (n : Nat) := ∀ m', m₀ ≤ m' ∧ m' < n → P m'
+  have hind_using_Q : ∀ m ≥ m₀, Q m → P m := hind
+  have Qn : ∀ n, Q n := by
+    apply induction
+    . unfold Q
+      intro m
+      intro h
+      rw [lt_iff] at h
+      obtain ⟨ a, ha ⟩ := h.right.left
+      symm at ha
+      apply Nat.add_eq_zero at ha
+      tauto
+    intro n h
+    have := trichotomous m₀ n
+    rw [← or_assoc] at this
+    rcases this with h1 | h2
+    . rw [← le_iff_lt_or_eq] at h1
+      rw [← ge_iff_le] at h1
+      specialize hind_using_Q n
+      have := hind_using_Q h1
+      have := this h
+      have : ∀ m, m₀ ≤ m ∧ m < n++ → P m := by
+        intro m hm
+        unfold Q at h
+        specialize h m
+        have := le_lt_succ_split hm
+        rcases this with hi | heq
+        . exact h hi
+        rw [← heq] at this
+        exact this
+      exact this
+    have : ¬∃m, m₀ ≤ m ∧ m < n++ := by
+      intro hc
+      obtain ⟨ m, hm ⟩ := hc
+      have := le_lt_trans hm.1 hm.2
+      rw [lt_iff_succ_le] at this
+      apply le_succ_cancel at this
+      rw [le_iff_lt_or_eq] at this
+      rw [gt_iff_lt] at h2
+
+    unfold Q
+    intro m hm
+    have := this ⟨ m, hm ⟩
+    contradiction
+  intro m h
+  specialize Qn (m++)
+  unfold Q at Qn
+  specialize Qn m
+  have : m < m++ := lt_succ_self m
+  rw [ge_iff_le] at h
+  exact Qn (And.intro h this)
+
+
+
+theorem Nat.strong_induction' {m₀:Nat} {P: Nat → Prop}
   (hind: ∀ m, m ≥ m₀ → (∀ m', m₀ ≤ m' ∧ m' < m → P m') → P m) :
     ∀ m, m ≥ m₀ → P m := by
   -- This proof was written by Issa.
@@ -676,16 +752,7 @@ theorem Nat.strong_induction {m₀:Nat} {P: Nat → Prop}
       unfold Q
       intro m
       intro h1
-      have : (m₀ ≤ m ∧ m < n) ∨ m = n := by
-        rw [Nat.lt_iff_succ_le] at h1
-        obtain ⟨ h0, h1 ⟩ := h1
-        apply Nat.le_succ_cancel at h1
-        rw [Nat.le_iff_lt_or_eq] at h1
-        obtain h2 | h3 := h1
-        . left
-          exact And.intro h0 h2
-        . right
-          exact h3
+      have : (m₀ ≤ m ∧ m < n) ∨ m = n := le_lt_succ_split h1
       obtain h2 | h3 := this
       . unfold Q at h
         specialize h m
