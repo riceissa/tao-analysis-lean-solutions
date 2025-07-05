@@ -49,8 +49,8 @@ Some technical notes:
 - In Analysis I, we chose to work with an "impure" set theory, in which there could be more
   `Object`s than just `Set`s.  In the type theory of Lean, this requires treating `Chapter3.Set`
   and `Chapter3.Object` as distinct types. Occasionally this means we have to use a coercion
-  `X.toObject` of a `Chapter3.Set` `X` to make into a `Chapter3.Object`: this is mostly needed
-  when manipulating sets of sets.
+  `(X: Chapter3.Object)` of a `Chapter3.Set` `X` to make into a `Chapter3.Object`: this is
+  mostly needed when manipulating sets of sets.
 - After this chapter is concluded, the notion of a `Chapter3.SetTheory.Set` will be deprecated in
   favor of the standard Mathlib notion of a `Set` (or more precisely of the type `Set X` of a set
   in a given type `X`).  However, due to various technical incompatibilities between set theory
@@ -62,7 +62,7 @@ Some technical notes:
 
 namespace Chapter3
 
-/-- Some of the axioms of Zermelo-Frankel theory with atoms  -/
+/-- The axioms of Zermelo-Frankel theory with atoms  -/
 class SetTheory where
   Set : Type -- Axiom 3.1
   Object : Type -- Axiom 3.1
@@ -97,7 +97,7 @@ class SetTheory where
 
 export SetTheory (Set Object)
 
--- This instance implicitly imposes (some of) the axioms of Zermelo-Frankel set theory with atoms.
+-- This instance implicitly imposes the axioms of Zermelo-Frankel set theory with atoms.
 variable [SetTheory]
 
 
@@ -109,15 +109,13 @@ instance objects_mem_sets : Membership Object Set where
 instance sets_are_objects : Coe Set Object where
   coe X := SetTheory.set_to_object X
 
-abbrev SetTheory.Set.toObject (X:Set) : Object := X
-
 /-- Axiom 3.1 (Sets are objects)-/
-theorem SetTheory.Set.coe_eq {X Y:Set} (h: X.toObject = Y.toObject) : X = Y :=
+theorem SetTheory.Set.coe_eq {X Y:Set} (h: (X: Object) = (Y: Object)) : X = Y :=
   SetTheory.set_to_object.inj' h
 
 /-- Axiom 3.1 (Sets are objects)-/
 @[simp]
-theorem SetTheory.Set.coe_eq_iff (X Y:Set) : X.toObject = Y.toObject ↔  X = Y := by
+theorem SetTheory.Set.coe_eq_iff (X Y:Set) : (X: Object) = (Y: Object) ↔  X = Y := by
   constructor
   . exact coe_eq
   intro h; subst h; rfl
@@ -136,7 +134,8 @@ instance SetTheory.Set.instEmpty : EmptyCollection Set where
 
 /--
   Axiom 3.3 (empty set).
-  Note: one may have to explicitly cast ∅ to Set due to Mathlib's existing set theory notation.
+  Note: in some applications one may have to explicitly cast ∅ to Set due to
+  Mathlib's existing set theory notation.
 -/
 @[simp]
 theorem SetTheory.Set.not_mem_empty : ∀ x, x ∉ (∅:Set) := SetTheory.emptyset_mem
@@ -186,7 +185,8 @@ instance SetTheory.Set.instSingleton : Singleton Object Set where
 
 /--
   Axiom 3.3(a) (singleton).
-  Note one may have to explicitly cast {a} to Set due to Mathlib's existing set theory notation.
+  Note: in some applications one may have to explicitly cast {a} to Set due to Mathlib's
+  existing set theory notation.
 -/
 @[simp]
 theorem SetTheory.Set.mem_singleton (x a:Object) : x ∈ ({a}:Set) ↔ x = a := by
@@ -204,16 +204,18 @@ theorem SetTheory.Set.mem_union (x:Object) (X Y:Set) : x ∈ (X ∪ Y) ↔ (x �
 instance SetTheory.Set.instInsert : Insert Object Set where
   insert x X := {x} ∪ X
 
-/-- Axiom 3.3(b) (pair).  Note that one often has to cast {a,b} to Set -/
+/-- Axiom 3.3(b) (pair).  Note: in some applications one may have to cast {a,b}
+    to Set. -/
 theorem SetTheory.Set.pair_eq (a b:Object) : ({a,b}:Set) = {a} ∪ {b} := by rfl
 
-/-- Axiom 3.3(b) (pair).  Note that one often has to cast {a,b} to Set -/
+/-- Axiom 3.3(b) (pair).  Note: in some applications one may have to cast {a,b}
+    to Set. -/
 @[simp]
 theorem SetTheory.Set.mem_pair (x a b:Object) : x ∈ ({a,b}:Set) ↔ (x = a ∨ x = b) := by
   simp [pair_eq, mem_union, mem_singleton]
 
 @[simp]
-theorem SetTheory.Set.mem_triple (x a b:Object) : x ∈ ({a,b,c}:Set) ↔ (x = a ∨ x = b ∨ x = c) := by
+theorem SetTheory.Set.mem_triple (x a b c:Object) : x ∈ ({a,b,c}:Set) ↔ (x = a ∨ x = b ∨ x = c) := by
   simp [Insert.insert, mem_union, mem_singleton]
 
 /-- Remark 3.1.8 -/
@@ -287,8 +289,8 @@ theorem SetTheory.Set.pair_eq_pair {a b c d:Object} (h: ({a,b}:Set) = {c,d}) :
 
 
 abbrev SetTheory.Set.empty : Set := ∅
-abbrev SetTheory.Set.singleton_empty : Set := {empty.toObject}
-abbrev SetTheory.Set.pair_empty : Set := {empty.toObject, singleton_empty.toObject}
+abbrev SetTheory.Set.singleton_empty : Set := {(empty: Object)}
+abbrev SetTheory.Set.pair_empty : Set := {(empty: Object), (singleton_empty: Object)}
 
 /-- Exercise 3.1.2-/
 theorem SetTheory.Set.emptyset_neq_singleton : empty ≠ singleton_empty := by
@@ -356,7 +358,8 @@ theorem SetTheory.Set.triple_eq (a b c:Object) : {a,b,c} = ({a}:Set) ∪ {b,c} :
 
 /-- Example 3.1.10 -/
 theorem SetTheory.Set.pair_union_pair (a b c:Object) :
-    ({a,b}:Set) ∪ {b,c} = {a,b,c} := sorry
+    ({a,b}:Set) ∪ {b,c} = {a,b,c} := by
+  sorry
 
 /-- Definition 3.1.14.   -/
 instance SetTheory.Set.instSubset : HasSubset Set where
@@ -516,11 +519,13 @@ theorem SetTheory.Set.inter_assoc (A B C:Set) : (A ∩ B) ∩ C = A ∩ (B ∩ C
 
 /-- Proposition 3.1.27(f) -/
 theorem  SetTheory.Set.inter_union_distrib_left (A B C:Set) :
-    A ∩ (B ∪ C) = (A ∩ B) ∪ (A ∩ C) := sorry
+    A ∩ (B ∪ C) = (A ∩ B) ∪ (A ∩ C) := by
+  sorry
 
 /-- Proposition 3.1.27(f) -/
 theorem  SetTheory.Set.union_inter_distrib_left (A B C:Set) :
-    A ∪ (B ∩ C) = (A ∪ B) ∩ (A ∪ C) := sorry
+    A ∪ (B ∩ C) = (A ∪ B) ∩ (A ∪ C) := by
+  sorry
 
 /-- Proposition 3.1.27(f) -/
 theorem SetTheory.Set.union_compl {A X:Set} (hAX: A ⊆ X) : A ∪ (X \ A) = X := by sorry
@@ -674,7 +679,7 @@ example : ({3,5,9}:Set).replace (P := fun x y ↦ ∃ (n:ℕ), x.val = n ∧ y =
 example : ({3,5,9}:Set).replace (P := fun x y ↦ y=1) (by sorry) = {1} := by sorry
 
 /-- Exercise 3.1.5.  One can use the `tfae_have` and `tfae_finish` tactics here. -/
-theorem SetTheory.Set.subset_tfae (A B C:Set) : [A ⊆ B, A ∪ B = B, A ∩ B = A].TFAE := by sorry
+theorem SetTheory.Set.subset_tfae (A B:Set) : [A ⊆ B, A ∪ B = B, A ∩ B = A].TFAE := by sorry
 
 /-- Exercise 3.1.7 -/
 theorem SetTheory.Set.inter_subset_left (A B:Set) : A ∩ B ⊆ A := by
