@@ -613,7 +613,7 @@ lemma Nat.le_trans {a b c : Nat} (hab : a ≤ b) (hbc : b ≤ c) : a ≤ c := by
   exact Nat.ge_trans hbc hab
 
 -- This lemma was added by Issa.
-lemma Nat.lt_trans (a b c : Nat) (hab : a < b) (hbc : b < c) : a < c := by
+lemma Nat.lt_trans {a b c : Nat} (hab : a < b) (hbc : b < c) : a < c := by
   rw [Nat.lt_iff] at hab
   rw [← Nat.le_iff] at hab
   rw [Nat.lt_iff] at hbc
@@ -665,10 +665,6 @@ lemma Nat.le_lt_succ_split {a b c: Nat} (h : a ≤ b ∧ b < c++) : (a ≤ b ∧
     exact And.intro h0 h2
   right
   exact h3
-
-lemma Nat.blahhh {a b c x : Nat} {P : Nat → Prop} (h : ¬∃x, P x) : x=x+1 := by
-  rw [not_exists] at h
-
 
 
 /-- Proposition 2.2.14 (Strong principle of induction) / Exercise 2.2.5
