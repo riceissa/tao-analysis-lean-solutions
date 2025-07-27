@@ -3,7 +3,7 @@ import Analysis.Section_5_3
 
 
 /-!
-# Analysis I, Section 5.4
+# Analysis I, Section 5.4: Ordering the reals
 
 I have attempted to make the translation as faithful a paraphrasing as possible of the original
 text. When there is a choice between a more idiomatic Lean solution and a more faithful
@@ -23,54 +23,66 @@ namespace Chapter5
   Definition 5.4.1 (sequences bounded away from zero with sign). Sequences are indexed to start
   from zero as this is more convenient for Mathlib purposes.
 -/
-abbrev bounded_away_pos (a:ℕ → ℚ) : Prop :=
+abbrev BoundedAwayPos (a:ℕ → ℚ) : Prop :=
   ∃ (c:ℚ), c > 0 ∧ ∀ n, a n ≥ c
 
 /-- Definition 5.4.1 (sequences bounded away from zero with sign). -/
-abbrev bounded_away_neg (a:ℕ → ℚ) : Prop :=
+abbrev BoundedAwayNeg (a:ℕ → ℚ) : Prop :=
   ∃ (c:ℚ), c > 0 ∧ ∀ n, a n ≤ -c
 
 /-- Definition 5.4.1 (sequences bounded away from zero with sign). -/
-theorem bounded_away_pos_def (a:ℕ → ℚ) : bounded_away_pos a ↔ ∃ (c:ℚ), c > 0 ∧ ∀ n, a n ≥ c := by
+theorem boundedAwayPos_def (a:ℕ → ℚ) : BoundedAwayPos a ↔ ∃ (c:ℚ), c > 0 ∧ ∀ n, a n ≥ c := by
   rfl
 
 /-- Definition 5.4.1 (sequences bounded away from zero with sign). -/
-theorem bounded_away_neg_def (a:ℕ → ℚ) : bounded_away_neg a ↔ ∃ (c:ℚ), c > 0 ∧ ∀ n, a n ≤ -c := by
+theorem boundedAwayNeg_def (a:ℕ → ℚ) : BoundedAwayNeg a ↔ ∃ (c:ℚ), c > 0 ∧ ∀ n, a n ≤ -c := by
   rfl
 
 /-- Examples 5.4.2 -/
-example : bounded_away_pos (fun n ↦ 1 + 10^(-(n:ℤ)-1)) := by sorry
+example : BoundedAwayPos (fun n ↦ 1 + 10^(-(n:ℤ)-1)) := ⟨ 1, by norm_num, by intros; simp; positivity ⟩
 
 /-- Examples 5.4.2 -/
-example : bounded_away_neg (fun n ↦ - - 10^(-(n:ℤ)-1)) := by sorry
+example : BoundedAwayNeg (fun n ↦ -1 - 10^(-(n:ℤ)-1)) := ⟨ 1, by norm_num, by intros; simp; positivity ⟩
 
 /-- Examples 5.4.2 -/
-example : ¬ bounded_away_pos (fun n ↦ (-1)^n) := by sorry
+example : ¬ BoundedAwayPos (fun n ↦ (-1)^n) := by
+  intro ⟨ c, h1, h2 ⟩; specialize h2 1; simp at h2; linarith
 
-example : ¬ bounded_away_neg (fun n ↦ (-1)^n) := by sorry
+/-- Examples 5.4.2 -/
+example : ¬ BoundedAwayNeg (fun n ↦ (-1)^n) := by
+  intro ⟨ c, h1, h2 ⟩; specialize h2 0; simp at h2; linarith
 
-example : bounded_away_zero (fun n ↦ (-1)^n) := by sorry
+/-- Examples 5.4.2 -/
+example : BoundedAwayZero (fun n ↦ (-1)^n) := ⟨ 1, by norm_num, by intros; simp ⟩
 
-theorem bounded_away_zero_of_pos {a:ℕ → ℚ} (ha: bounded_away_pos a) : bounded_away_zero a := by
-  sorry
+theorem BoundedAwayZero.boundedAwayPos {a:ℕ → ℚ} (ha: BoundedAwayPos a) : BoundedAwayZero a := by
+  obtain ⟨ c, h1, h2 ⟩ := ha; use c, h1
+  intro n; specialize h2 n
+  rwa [abs_of_nonneg (by linarith)]
 
-theorem bounded_away_zero_of_neg {a:ℕ → ℚ} (ha: bounded_away_neg a) : bounded_away_zero a := by
-  sorry
 
-theorem not_bounded_away_pos_neg {a:ℕ → ℚ} : ¬ (bounded_away_pos a ∧ bounded_away_neg a) := by
-  sorry
+theorem BoundedAwayZero.boundedAwayNeg {a:ℕ → ℚ} (ha: BoundedAwayNeg a) : BoundedAwayZero a := by
+  obtain ⟨ c, h1, h2 ⟩ := ha
+  refine ⟨ c, h1, ?_ ⟩
+  intro n; specialize h2 n
+  rw [abs_of_neg (by linarith)]
+  linarith
+
+theorem not_boundedAwayPos_boundedAwayNeg {a:ℕ → ℚ} : ¬ (BoundedAwayPos a ∧ BoundedAwayNeg a) := by
+  intro ⟨ ⟨ _, _, h2⟩ , ⟨ _, _, h4 ⟩ ⟩
+  linarith [h2 0, h4 0]
 
 abbrev Real.isPos (x:Real) : Prop :=
-  ∃ a:ℕ → ℚ, bounded_away_pos a ∧ (a:Sequence).isCauchy ∧ x = LIM a
+  ∃ a:ℕ → ℚ, BoundedAwayPos a ∧ (a:Sequence).IsCauchy ∧ x = LIM a
 
 abbrev Real.isNeg (x:Real) : Prop :=
-  ∃ a:ℕ → ℚ, bounded_away_neg a ∧ (a:Sequence).isCauchy ∧ x = LIM a
+  ∃ a:ℕ → ℚ, BoundedAwayNeg a ∧ (a:Sequence).IsCauchy ∧ x = LIM a
 
 theorem Real.isPos_def (x:Real) :
-    Real.isPos x ↔ ∃ a:ℕ → ℚ, bounded_away_pos a ∧ (a:Sequence).isCauchy ∧ x = LIM a := by rfl
+    Real.isPos x ↔ ∃ a:ℕ → ℚ, BoundedAwayPos a ∧ (a:Sequence).IsCauchy ∧ x = LIM a := by rfl
 
 theorem Real.isNeg_def (x:Real) :
-    Real.isNeg x ↔ ∃ a:ℕ → ℚ, bounded_away_neg a ∧ (a:Sequence).isCauchy ∧ x = LIM a := by rfl
+    Real.isNeg x ↔ ∃ a:ℕ → ℚ, BoundedAwayNeg a ∧ (a:Sequence).IsCauchy ∧ x = LIM a := by rfl
 
 /-- Proposition 5.4.4 (basic properties of positive reals) / Exercise 5.4.1 -/
 theorem Real.trichotomous (x:Real) : x = 0 ∨ x.isPos ∨ x.isNeg := by sorry
@@ -80,16 +92,14 @@ theorem Real.not_zero_pos (x:Real) : ¬ (x = 0 ∧ x.isPos) := by sorry
 
 theorem Real.nonzero_of_pos {x:Real} (hx: x.isPos) : x ≠ 0 := by
     have := not_zero_pos x
-    simp [hx] at this ⊢
-    assumption
+    simpa [hx] using this
 
 /-- Proposition 5.4.4 (basic properties of positive reals) / Exercise 5.4.1 -/
 theorem Real.not_zero_neg (x:Real) : ¬ (x = 0 ∧ x.isNeg) := by sorry
 
 theorem Real.nonzero_of_neg {x:Real} (hx: x.isNeg) : x ≠ 0 := by
     have := not_zero_neg x
-    simp [hx] at this ⊢
-    assumption
+    simpa [hx] using this
 
 /-- Proposition 5.4.4 (basic properties of positive reals) / Exercise 5.4.1 -/
 theorem Real.not_pos_neg (x:Real) : ¬ (x.isPos ∧ x.isNeg) := by sorry
@@ -121,18 +131,16 @@ theorem Real.abs_of_pos (x:Real) (hx: x.isPos) : Real.abs x = x := by
 /-- Definition 5.4.5 (absolute value) -/
 @[simp]
 theorem Real.abs_of_neg (x:Real) (hx: x.isNeg) : Real.abs x = -x := by
-  have : ¬ x.isPos := by have := Real.not_pos_neg x; simp only [hx, and_true] at this; assumption
+  have : ¬ x.isPos := by have := Real.not_pos_neg x; simpa [hx, and_true] using this
   simp [Real.abs, hx, this]
 
 /-- Definition 5.4.5 (absolute value) -/
 @[simp]
 theorem Real.abs_of_zero : Real.abs 0 = 0 := by
   have hpos: ¬ (0:Real).isPos := by
-    have := Real.not_zero_pos 0
-    simp only [true_and] at this; assumption
+    have := Real.not_zero_pos 0; simpa only [true_and] using this
   have hneg: ¬ (0:Real).isNeg := by
-    have := Real.not_zero_neg 0
-    simp only [true_and] at this; assumption
+    have := Real.not_zero_neg 0; simpa only [true_and] using this
   simp [Real.abs, hpos, hneg]
 
 /-- Definition 5.4.6 (Ordering of the reals) -/
@@ -189,6 +197,7 @@ theorem Real.mul_le_mul_left {x y z:Real} (hxy: x ≤ y) (hz: z.isPos) : z * x �
 theorem Real.mul_pos_neg {x y:Real} (hx: x.isPos) (hy: y.isNeg) : (x * y).isNeg := by
   sorry
 
+open Classical in
 /--
   (Not from textbook) Real has the structure of a linear ordering. The order is not computable,
   and so classical logic is required to impose decidability.
@@ -199,9 +208,7 @@ noncomputable instance Real.instLinearOrder : LinearOrder Real where
   lt_iff_le_not_le := sorry
   le_antisymm := sorry
   le_total := sorry
-  toDecidableLE := by
-    classical
-    exact Classical.decRel _
+  toDecidableLE := Classical.decRel _
 
 /-- Proposition 5.4.8 -/
 theorem Real.inv_of_pos {x:Real} (hx: x.isPos) : x⁻¹.isPos := by
@@ -212,11 +219,10 @@ theorem Real.inv_of_pos {x:Real} (hx: x.isPos) : x⁻¹.isPos := by
     intro h
     have := mul_pos_neg hx h
     have id : -(1:Real) = (-1:ℚ) := by simp
-    simp only [hident, neg_iff_pos_of_neg, id, pos_of_coe] at this
+    simp only [hident, neg_iff_pos_of_neg, id, pos_of_coe, self_mul_inv hnon] at this
     linarith
   have trich := Real.trichotomous x⁻¹
-  simp [hinv_non, hnonneg] at trich
-  assumption
+  simpa [hinv_non, hnonneg] using trich
 
 theorem Real.div_of_pos {x y:Real} (hx: x.isPos) (hy: y.isPos) : (x/y).isPos := by sorry
 
@@ -226,10 +232,10 @@ theorem Real.inv_of_gt {x y:Real} (hx: x.isPos) (hy: y.isPos) (hxy: x > y) : x�
   have hxinv : x⁻¹.isPos := inv_of_pos hx
   by_contra! this
   have : (1:Real) > 1 := calc
-    1 = x * x⁻¹ := (inv_mul_self hxnon).symm
+    1 = x * x⁻¹ := (self_mul_inv hxnon).symm
     _ > y * x⁻¹ := mul_lt_mul_right hxy hxinv
     _ ≥ y * y⁻¹ := mul_le_mul_left this hy
-    _ = _ := inv_mul_self hynon
+    _ = _ := self_mul_inv hynon
   simp at this
 
 /-- (Not from textbook) Real has the structure of a strict ordered ring. -/
@@ -242,51 +248,45 @@ instance Real.instIsStrictOrderedRing : IsStrictOrderedRing Real where
   zero_le_one := by sorry
 
 /-- Proposition 5.4.9 (The non-negative reals are closed)-/
-theorem Real.LIM_of_nonneg {a: ℕ → ℚ} (ha: ∀ n, a n ≥ 0) (hcauchy: (a:Sequence).isCauchy) :
+theorem Real.LIM_of_nonneg {a: ℕ → ℚ} (ha: ∀ n, a n ≥ 0) (hcauchy: (a:Sequence).IsCauchy) :
     LIM a ≥ 0 := by
   -- This proof is written to follow the structure of the original text.
   by_contra! hlim
   set x := LIM a
-  rw [←isNeg_iff, isNeg_def] at hlim
-  obtain ⟨ b, hb, hb_cauchy, hlim ⟩ := hlim
-  rw [bounded_away_neg_def] at hb
-  obtain ⟨ c, cpos, hb ⟩ := hb
-  have claim1 : ∀ n, ¬ (c/2).close (a n) (b n) := by
-    intro n
-    specialize ha n
-    specialize hb n
+  rw [←isNeg_iff, isNeg_def] at hlim; obtain ⟨ b, hb, hb_cauchy, hlim ⟩ := hlim
+  rw [boundedAwayNeg_def] at hb; obtain ⟨ c, cpos, hb ⟩ := hb
+  have claim1 : ∀ n, ¬ (c/2).Close (a n) (b n) := by
+    intro n; specialize ha n; specialize hb n
     simp [Section_4_3.close_iff]
     calc
       _ < c := by linarith
       _ ≤ a n - b n := by linarith
       _ ≤ _ := le_abs_self _
-  have claim2 : ¬ (c/2).eventually_close (a:Sequence) (b:Sequence) := by
+  have claim2 : ¬ (c/2).EventuallyClose (a:Sequence) (b:Sequence) := by
     contrapose! claim1
-    rw [Rat.eventually_close_iff] at claim1
-    obtain ⟨ N, claim1 ⟩ := claim1
-    specialize claim1 N (le_refl _)
-    use N
-    rwa [Section_4_3.close_iff]
-  have claim3 : ¬ Sequence.equiv a b := by
+    rw [Rat.eventuallyClose_iff] at claim1
+    obtain ⟨ N, claim1 ⟩ := claim1; specialize claim1 N (le_refl _)
+    use N; rwa [Section_4_3.close_iff]
+  have claim3 : ¬ Sequence.Equiv a b := by
     contrapose! claim2
     rw [Sequence.equiv_def] at claim2
-    exact claim2 (c/2) (half_pos cpos)
+    solve_by_elim [half_pos]
   simp_rw [x, LIM_eq_LIM hcauchy hb_cauchy] at hlim
   contradiction
 
 /-- Corollary 5.4.10 -/
-theorem Real.LIM_mono {a b:ℕ → ℚ} (ha: (a:Sequence).isCauchy) (hb: (b:Sequence).isCauchy)
+theorem Real.LIM_mono {a b:ℕ → ℚ} (ha: (a:Sequence).IsCauchy) (hb: (b:Sequence).IsCauchy)
   (hmono: ∀ n, a n ≤ b n) :
     LIM a ≤ LIM b := by
   -- This proof is written to follow the structure of the original text.
-  have := LIM_of_nonneg (a := b - a) (by intro n; simp [hmono n]) (sub_of_cauchy hb ha)
-  rw [←Real.sub_of_LIM hb ha] at this
+  have := LIM_of_nonneg (a := b - a) (by intro n; simp [hmono n]) (Sequence.IsCauchy.sub hb ha)
+  rw [←Real.LIM_sub hb ha] at this
   linarith
 
 /-- Remark 5.4.11 --/
 theorem Real.LIM_mono_fail :
-    ∃ (a b:ℕ → ℚ), (a:Sequence).isCauchy
-    ∧ (b:Sequence).isCauchy
+    ∃ (a b:ℕ → ℚ), (a:Sequence).IsCauchy
+    ∧ (b:Sequence).IsCauchy
     ∧ ¬ (∀ n, a n > b n)
     ∧ ¬ LIM a > LIM b := by
   use (fun n ↦ 1 + 1/(n:ℚ))
@@ -297,52 +297,40 @@ theorem Real.LIM_mono_fail :
 theorem Real.exists_rat_le_and_nat_ge {x:Real} (hx: x.isPos) :
     (∃ q:ℚ, q > 0 ∧ (q:Real) ≤ x) ∧ ∃ N:ℕ, x < (N:Real) := by
   -- This proof is written to follow the structure of the original text.
-  rw [isPos_def] at hx
-  obtain ⟨ a, hbound, hcauchy, heq ⟩ := hx
+  rw [isPos_def] at hx; obtain ⟨ a, hbound, hcauchy, heq ⟩ := hx
+  rw [boundedAwayPos_def] at hbound; obtain ⟨ q, hq, hbound ⟩ := hbound
   have := Sequence.isBounded_of_isCauchy hcauchy
-  rw [bounded_away_pos_def] at hbound
-  rw [Sequence.isBounded_def] at this
-  obtain ⟨ q, hq, hbound ⟩ := hbound
-  obtain ⟨ r, hr, this ⟩ := this
-  simp [Sequence.BoundedBy_def] at this
-  constructor
-  . refine ⟨ q, hq, ?_ ⟩
-    convert LIM_mono _ hcauchy hbound
-    . exact Real.ratCast_def q
-    exact Sequence.isCauchy_of_const q
-  obtain ⟨ N, hN  ⟩ := exists_nat_gt r
-  use N
+  rw [Sequence.isBounded_def] at this; obtain ⟨ r, hr, this ⟩ := this
+  simp [Sequence.boundedBy_def] at this
+  refine ⟨ ⟨ q, hq, ?_ ⟩, ?_ ⟩
+  . convert LIM_mono (Sequence.IsCauchy.const _) hcauchy hbound
+    exact Real.ratCast_def q
+  obtain ⟨ N, hN ⟩ := exists_nat_gt r; use N
   calc
     x ≤ r := by
       rw [Real.ratCast_def r]
       convert LIM_mono hcauchy _ _
-      . exact Sequence.isCauchy_of_const r
-      intro n
-      specialize this n
-      simp at this
+      . exact Sequence.IsCauchy.const r
+      intro n; specialize this n; simp at this
       exact (le_abs_self _).trans this
     _ < ((N:ℚ):Real) := by simp [←Real.lt_of_coe,hN]
-    _ = N := by rfl
+    _ = N := rfl
 
 /-- Corollary 5.4.13 (Archimedean property ) -/
 theorem Real.le_mul {ε:Real} (hε: ε.isPos) (x:Real) : ∃ M:ℕ, M > 0 ∧ M * ε > x := by
   -- This proof is written to follow the structure of the original text.
-  rcases trichotomous x with hx | hx | hx
-  . use 1; rw [isPos_iff] at hε; simp [hx, hε]
+  rcases trichotomous x with rfl | hx | hx
+  . use 1; simpa [isPos_iff] using hε
   . obtain ⟨ N, hN ⟩ := (exists_rat_le_and_nat_ge (div_of_pos hx hε)).2
-    set M := N+1
-    refine ⟨ M, by positivity, ?_ ⟩
+    set M := N+1; refine ⟨ M, by positivity, ?_ ⟩
     replace hN : x/ε < M := hN.trans (by simp [M])
-    replace hN := mul_lt_mul_right hN hε
     simp
-    convert hN
+    convert mul_lt_mul_right hN hε
     rw [isPos_iff] at hε
     field_simp
   use 1
-  rw [isPos_iff] at hε
-  rw [isNeg_iff] at hx
-  simp [hx]
-  linarith
+  rw [isPos_iff] at hε; rw [isNeg_iff] at hx
+  simp [hx]; linarith
 
 /-- Proposition 5.4.14 / Exercise 5.4.5 -/
 theorem Real.rat_between {x y:Real} (hxy: x < y) : ∃ q:ℚ, x < (q:Real) ∧ (q:Real) < y := by sorry
@@ -366,11 +354,11 @@ theorem Real.le_add_eps_iff (x y:Real) : ∀ ε > 0, x ≤ y+ε ↔ x ≤ y := b
 theorem Real.dist_le_eps_iff (x y:Real) : ∀ ε > 0, |x-y| ≤ ε ↔ x = y := by sorry
 
 /-- Exercise 5.4.8 -/
-theorem Real.LIM_of_le {x:Real} {a:ℕ → ℚ} (hcauchy: (a:Sequence).isCauchy) (h: ∀ n, a n ≤ x) :
+theorem Real.LIM_of_le {x:Real} {a:ℕ → ℚ} (hcauchy: (a:Sequence).IsCauchy) (h: ∀ n, a n ≤ x) :
     LIM a ≤ x := by sorry
 
 /-- Exercise 5.4.8 -/
-theorem Real.LIM_of_ge {x:Real} {a:ℕ → ℚ} (hcauchy: (a:Sequence).isCauchy) (h: ∀ n, a n ≥ x) :
+theorem Real.LIM_of_ge {x:Real} {a:ℕ → ℚ} (hcauchy: (a:Sequence).IsCauchy) (h: ∀ n, a n ≥ x) :
     LIM a ≥ x := by sorry
 
 theorem Real.max_eq (x y:Real) : max x y = (if x ≥ y then x else y) :=  max_def' x y
