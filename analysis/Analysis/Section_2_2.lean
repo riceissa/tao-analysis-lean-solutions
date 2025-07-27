@@ -192,9 +192,10 @@ lemma Nat.uniq_succ_eq (a:Nat) (ha: a.IsPos) : ∃! b, b++ = a := by
     rw [← hy2] at hy1
     exact hy1
 
-lemma Nat.succ_eq (a:Nat) (ha: a.isPos) : ∃ b, b++ = a := by
+lemma Nat.succ_eq (a:Nat) (ha: a.IsPos) : ∃ b, b++ = a := by
   apply Nat.uniq_succ_eq at ha
   apply ExistsUnique.exists ha
+
 
 /-
   -- This proof was written by Issa. Old version that is messy.
@@ -733,7 +734,7 @@ theorem Nat.strong_induction {m₀:Nat} {P: Nat → Prop}
       apply le_succ_cancel at this
       rw [le_iff_lt_or_eq] at this
       rw [gt_iff_lt] at h2
-
+      sorry
     unfold Q
     intro m hm
     have := this ⟨ m, hm ⟩
@@ -886,7 +887,7 @@ theorem Nat.induction_from {n:Nat} {P: Nat → Prop} (hind: ∀ m, P m → P (m+
   rw [← ha] at this
   exact this
 
-lemma Nat.isPos_iff_gt_zero (n:Nat) : n.isPos ↔ n > 0 := by
+lemma Nat.isPos_iff_gt_zero (n:Nat) : n.IsPos ↔ n > 0 := by
   constructor
   . intro h
     rw [Nat.isPos_iff] at h

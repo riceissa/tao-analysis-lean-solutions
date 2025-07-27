@@ -87,10 +87,7 @@ lemma Nat.mul_comm (n m: Nat) : n * m = m * n := by
 theorem Nat.mul_one (m: Nat) : m * 1 = m := by
   rw [mul_comm, one_mul]
 
-/-- This lemma will be useful to prove Lemma 2.3.3.
-Compare with Mathlib's `Nat.mul_pos` -/
-lemma Nat.pos_mul_pos {n m: Nat} (h₁: n.IsPos) (h₂: m.IsPos) : (n * m).IsPos := by
-  sorry
+
 
 /-- Lemma 2.3.3 (Positive natural numbers have no zero divisors) / Exercise 2.3.2.
     Compare with Mathlib's `Nat.mul_eq_zero`.  -/
@@ -114,8 +111,12 @@ lemma Nat.mul_eq_zero (n m: Nat) : n * m = 0 ↔ n = 0 ∨ m = 0 := by
     rw [hn, Nat.zero_mul]
     rw [hm, Nat.mul_zero]
 
-lemma Nat.pos_mul_pos {n m: Nat} (h₁: n.isPos) (h₂: m.isPos) : (n * m).isPos := by
-  have h := Nat.mul_eq_zero_iff
+/-- This lemma will be useful to prove Lemma 2.3.3.
+Compare with Mathlib's `Nat.mul_pos`
+
+Note from Issa: I actually ended up doing the reverse, of proving mul_eq_zero directly and then proving the following as a special case. But I might want to swap the two back to how it is in the main repo. -/
+lemma Nat.pos_mul_pos {n m: Nat} (h₁: n.IsPos) (h₂: m.IsPos) : (n * m).IsPos := by
+  have h := Nat.mul_eq_zero
   specialize h n m
   tauto
 
