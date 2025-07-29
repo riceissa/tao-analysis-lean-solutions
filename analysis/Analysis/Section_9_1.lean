@@ -1,5 +1,6 @@
 import Mathlib.Tactic
 import Mathlib.Analysis.SpecificLimits.Basic
+import Mathlib.Topology.MetricSpace.Sequences
 import Analysis.Section_6_4
 
 /-!
@@ -43,7 +44,18 @@ variable (I : Type*)
 
 /-- Example 9.1.4 -/
 example {a b: EReal} (h: a > b) : Set.Icc a b = ∅ := by
-  sorry
+  -- This is probably a terrible way of doing this, but I'm just getting back into doing Lean, so whatever.
+  rw [← Set.Icc_def]
+  ext x
+  constructor
+  . intro hle
+    rw [Set.mem_setOf_eq] at hle
+    have hab : a ≤ b := by
+      apply le_trans hle.1 hle.2
+    have := h.not_le
+    contradiction
+  intro hempty
+  contradiction
 
 example {a b: EReal} (h: a ≥ b) : Set.Ico a b = ∅ := by
   sorry
@@ -61,7 +73,15 @@ example {a b: EReal} (h: a = b) : Set.Icc a a = {a} := by
 abbrev Real.adherent' (ε:ℝ) (x:ℝ) (X: Set ℝ) := ∃ y ∈ X, |x - y| ≤ ε
 
 /-- Example 9.1.7 -/
-example : (0.5:ℝ).adherent' 1.1 (Set.Ioo 0 1) := by sorry
+example : (0.5:ℝ).adherent' 1.1 (Set.Ioo 0 1) := by
+  rw [Real.adherent']
+  use 0.9
+  constructor
+  . rw [← Set.Ioo_def]
+    rw [Set.mem_setOf_eq]
+    norm_num
+  norm_num
+  sorry
 
 example : ¬ (0.1:ℝ).adherent' 1.1 (Set.Ioo 0 1) := by sorry
 
@@ -372,7 +392,9 @@ theorem Heine_Borel (X: Set ℝ) :
   IsClosed X ∧ Bornology.IsBounded X ↔ ∀ a : ℕ → ℝ, (∀ n, a n ∈ X) →
   (∃ n : ℕ → ℕ, StrictMono n
     ∧ ∃ L ∈ X, Filter.Tendsto (fun j ↦ a (n j)) Filter.atTop (nhds L)) := by
-  sorry
+  constructor
+  . have h := tendsto_subseq_of_bounded
+
 
 /-- Exercise 9.1.4 -/
 example : ∃ (X Y:Set ℝ), closure (X ∩ Y) ≠ closure X ∩ closure Y := by
